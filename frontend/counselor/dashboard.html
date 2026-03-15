@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<title>Counselor Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+
+/* PAGE */
+
+body{
+margin:0;
+font-family:Segoe UI, system-ui;
+background:linear-gradient(135deg,#eef2ff,#f8fafc);
+}
+
+/* NAVBAR */
+
+.navbar{
+height:64px;
+background:white;
+display:flex;
+align-items:center;
+justify-content:space-between;
+padding:0 40px;
+border-bottom:1px solid #e2e8f0;
+box-shadow:0 2px 8px rgba(0,0,0,0.04);
+}
+
+.nav-title{
+font-size:18px;
+font-weight:700;
+color:#1e293b;
+}
+
+.nav-buttons button{
+margin-left:10px;
+padding:8px 16px;
+border:none;
+border-radius:8px;
+cursor:pointer;
+font-size:14px;
+font-weight:500;
+transition:all .2s;
+}
+
+/* BUTTONS */
+
+.refresh{
+background:#10b981;
+color:white;
+}
+
+.refresh:hover{
+background:#059669;
+transform:translateY(-1px);
+box-shadow:0 6px 14px rgba(16,185,129,0.25);
+}
+
+.logout{
+background:#ef4444;
+color:white;
+}
+
+.logout:hover{
+background:#dc2626;
+transform:translateY(-1px);
+box-shadow:0 6px 14px rgba(239,68,68,0.25);
+}
+
+/* CONTAINER */
+
+.container{
+max-width:1050px;
+margin:auto;
+padding:40px 20px;
+}
+
+/* STATS */
+
+.stats{
+display:flex;
+justify-content:center;
+gap:25px;
+margin-bottom:35px;
+}
+
+.stat-card{
+background:white;
+padding:25px;
+width:180px;
+border-radius:14px;
+text-align:center;
+box-shadow:0 6px 20px rgba(0,0,0,0.08);
+transition:all .25s;
+}
+
+.stat-card:hover{
+transform:translateY(-4px);
+box-shadow:0 12px 30px rgba(0,0,0,0.12);
+}
+
+.stat-card h2{
+margin:0;
+font-size:32px;
+color:#1e293b;
+}
+
+.stat-card p{
+margin-top:6px;
+font-size:14px;
+color:#64748b;
+}
+
+/* CHART */
+
+.chart-box{
+background:white;
+padding:25px;
+border-radius:14px;
+box-shadow:0 6px 20px rgba(0,0,0,0.08);
+margin-bottom:30px;
+max-width:750px;
+margin-left:auto;
+margin-right:auto;
+}
+
+/* SEARCH */
+
+#search{
+width:100%;
+padding:12px;
+border-radius:8px;
+border:1px solid #e2e8f0;
+margin-bottom:20px;
+font-size:14px;
+transition:0.2s;
+}
+
+#search:focus{
+outline:none;
+border-color:#6366f1;
+box-shadow:0 0 0 3px rgba(99,102,241,0.15);
+}
+
+/* TABLE */
+
+table{
+width:100%;
+border-collapse:collapse;
+background:white;
+border-radius:14px;
+overflow:hidden;
+box-shadow:0 6px 20px rgba(0,0,0,0.08);
+}
+
+th{
+background:#6366f1;
+color:white;
+padding:14px;
+font-size:14px;
+}
+
+td{
+padding:12px;
+text-align:center;
+border-top:1px solid #eef2f7;
+font-size:14px;
+}
+
+tr:hover{
+background:#f8fafc;
+}
+
+/* RISK COLORS */
+
+.low{
+background:#bbf7d0;
+font-weight:500;
+}
+
+.medium{
+background:#fde68a;
+font-weight:500;
+}
+
+.high{
+background:#fca5a5;
+font-weight:500;
+}
+
+.testsBtn{
+background:#6366f1;
+color:white;
+border:none;
+padding:8px 16px;
+border-radius:8px;
+cursor:pointer;
+font-size:14px;
+font-weight:500;
+transition:.2s;
+}
+
+.testsBtn:hover{
+background:#4f46e5;
+transform:translateY(-1px);
+box-shadow:0 6px 14px rgba(99,102,241,0.25);
+}
+</style>
+
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+
+<div class="navbar">
+
+<div class="nav-title">
+🧠 AI Counselor Dashboard
+</div>
+
+<div class="nav-buttons">
+
+<button class="testsBtn" onclick="goToTests()">
+Manage Tests
+</button>
+
+<button class="refresh" onclick="location.reload()">Refresh</button>
+
+<button class="logout" onclick="logout()">Logout</button>
+
+</div>
+
+</div>
+
+
+<div class="container">
+
+<!-- STATS -->
+
+<div class="stats">
+
+<div class="stat-card">
+<h2 id="lowCount">0</h2>
+<p>Low Risk</p>
+</div>
+
+<div class="stat-card">
+<h2 id="mediumCount">0</h2>
+<p>Medium Risk</p>
+</div>
+
+<div class="stat-card">
+<h2 id="highCount">0</h2>
+<p>High Risk</p>
+</div>
+
+</div>
+
+
+<!-- CHART -->
+
+<div class="chart-box">
+<canvas id="riskChart" height="120"></canvas>
+</div>
+
+
+<input id="search" placeholder="Search student..." onkeyup="filterStudents()">
+
+
+<table>
+
+<thead>
+<tr>
+<th>Student Name</th>
+<th>Email</th>
+<th>Score</th>
+<th>Risk</th>
+</tr>
+</thead>
+
+<tbody id="resultsTable"></tbody>
+
+</table>
+
+</div>
+
+
+<script>
+
+/* PROTECT PAGE */
+
+if(!localStorage.getItem("counselor_id")){
+window.location.href="../../index.html"
+}
+
+/* LOGOUT */
+
+function logout(){
+localStorage.removeItem("counselor_id")
+window.location.href="../../index.html"
+}
+
+let chart=null
+
+function drawChart(low,medium,high){
+
+const ctx=document.getElementById("riskChart")
+
+if(chart) chart.destroy()
+
+chart=new Chart(ctx,{
+type:"bar",
+data:{
+labels:["Low Risk","Medium Risk","High Risk"],
+datasets:[{
+data:[low,medium,high],
+backgroundColor:[
+"#22c55e",
+"#facc15",
+"#ef4444"
+],
+borderRadius:6
+}]
+},
+options:{
+plugins:{legend:{display:false}},
+scales:{
+y:{beginAtZero:true,ticks:{stepSize:1}}
+}
+}
+})
+
+}
+
+async function loadResults(){
+
+const res=await fetch("http://127.0.0.1:5000/counselor/results")
+const data=await res.json()
+
+const table=document.getElementById("resultsTable")
+
+table.innerHTML=""
+
+let low=0
+let medium=0
+let high=0
+
+data.forEach(student=>{
+
+let riskClass=student.risk.toLowerCase()
+
+let row=document.createElement("tr")
+
+row.innerHTML=`
+<td>${student.name}</td>
+<td>${student.email}</td>
+<td>${student.score}</td>
+<td class="${riskClass}">${student.risk}</td>
+`
+
+table.appendChild(row)
+
+if(student.risk==="Low") low++
+if(student.risk==="Medium") medium++
+if(student.risk==="High") high++
+
+})
+
+document.getElementById("lowCount").innerText=low
+document.getElementById("mediumCount").innerText=medium
+document.getElementById("highCount").innerText=high
+
+drawChart(low,medium,high)
+
+}
+
+function filterStudents(){
+
+const input=document.getElementById("search").value.toLowerCase()
+
+const rows=document.querySelectorAll("#resultsTable tr")
+
+rows.forEach(row=>{
+const text=row.innerText.toLowerCase()
+row.style.display=text.includes(input) ? "" : "none"
+})
+
+}
+
+function goToTests(){
+window.location.href="tests.html"
+}
+
+loadResults()
+
+setInterval(loadResults,10000)
+
+</script>
+
+</body>
+</html>

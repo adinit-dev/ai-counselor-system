@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<title>View Test</title>
+
+<style>
+
+    /* PAGE */
+
+body{
+    margin:0;
+    font-family:Segoe UI, system-ui, sans-serif;
+    background:linear-gradient(135deg,#eef2ff,#f8fafc);
+    min-height:100vh;
+}
+
+/* NAVBAR */
+
+/* NAVBAR */
+
+.navbar{
+    background:white;
+    height:64px;
+    padding:0 40px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    border-bottom:1px solid #e2e8f0;
+    box-shadow:0 2px 8px rgba(0,0,0,0.04);
+}
+
+/* LOGO */
+
+.logo{
+    font-weight:700;
+    font-size:18px;
+    color:#1e293b;
+    letter-spacing:0.3px;
+}
+
+/* NAV BUTTON */
+
+.nav-btn{
+    background:#6366f1;
+    color:white;
+    border:none;
+    padding:8px 18px;
+    border-radius:8px;
+    font-size:14px;
+    font-weight:500;
+    cursor:pointer;
+    transition:all 0.2s ease;
+}
+
+/* HOVER */
+
+.nav-btn:hover{
+    background:#4f46e5;
+    transform:translateY(-1px);
+    box-shadow:0 6px 16px rgba(99,102,241,0.25);
+}
+
+/* ACTIVE CLICK */
+
+.nav-btn:active{
+    transform:translateY(0px);
+    box-shadow:none;
+}
+
+/* PAGE */
+
+.page{
+    max-width:760px;
+    margin:auto;
+    padding:60px 20px;
+}
+
+/* HEADER */
+
+.header h1{
+    margin:0;
+    font-size:30px;
+    font-weight:700;
+    color:#1e293b;
+}
+
+.header p{
+    margin-top:6px;
+    font-size:15px;
+    color:#64748b;
+}
+
+/* MAIN CARD */
+
+.container{
+    background:white;
+    padding:30px;
+    border-radius:14px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.08);
+}
+
+/* QUESTION CARD */
+
+.question{
+    border:1px solid #e2e8f0;
+    padding:20px;
+    margin-top:16px;
+    border-radius:12px;
+    background:#f9fafb;
+    transition:0.25s;
+}
+
+.question:hover{
+    transform:translateY(-2px);
+    box-shadow:0 6px 18px rgba(0,0,0,0.08);
+}
+
+/* QUESTION TITLE */
+
+.questionTitle{
+    font-size:18px;
+    font-weight:600;
+    color:#1e293b;
+    margin-bottom:6px;
+}
+
+/* QUESTION TEXT */
+
+.questionText{
+    font-size:16px;
+    font-weight:500;
+    color:#334155;
+    margin-bottom:12px;
+}
+
+/* OPTIONS */
+
+.option{
+    padding:10px 12px;
+    margin-top:8px;
+    border-radius:8px;
+    background:white;
+    border:1px solid #e2e8f0;
+    font-size:14px;
+    color:#334155;
+    line-height:1.4;
+    transition:0.2s;
+}
+
+.option:hover{
+    background:#f1f5f9;
+}
+</style>
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+
+<div class="navbar">
+
+    <div class="logo">
+        AI Counselor
+    </div>
+
+    <button class="nav-btn" onclick="window.location.href='tests.html'">
+        ← Back
+    </button>
+
+</div>
+
+
+<!-- PAGE -->
+
+<div class="page">
+
+<div class="header">
+    <h1>Test Questions</h1>
+    <p>Preview the questions in this assessment</p>
+</div>
+
+<div class="container">
+
+<div id="questions"></div>
+
+</div>
+
+</div>
+
+
+<script>
+
+function getTestId(){
+
+const params = new URLSearchParams(window.location.search)
+return params.get("test_id")
+
+}
+
+async function loadQuestions(){
+
+const test_id = getTestId()
+
+const res = await fetch("http://127.0.0.1:5000/questions/" + test_id)
+const data = await res.json()
+
+let html = ""
+
+data.questions.forEach((q,index)=>{
+
+html += `
+
+<div class="question">
+
+<div class="questionTitle">
+Question ${index+1}
+</div>
+
+<div class="questionText">
+${q.question}
+</div>
+
+<div class="option">A. ${q.option1}</div>
+<div class="option">B. ${q.option2}</div>
+<div class="option">C. ${q.option3}</div>
+<div class="option">D. ${q.option4}</div>
+
+</div>
+
+`
+
+})
+
+document.getElementById("questions").innerHTML = html
+
+}
+
+loadQuestions()
+
+</script>
+
+</body>
+</html>

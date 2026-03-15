@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<title>Counselor Tests</title>
+
+<style>
+
+/* PAGE */
+
+body{
+    margin:0;
+    font-family:Segoe UI;
+    background:linear-gradient(135deg,#eef2ff,#f8fafc);
+    min-height:100vh;
+}
+
+/* NAVBAR */
+
+.navbar{
+    background:white;
+    padding:18px 40px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    box-shadow:0 3px 12px rgba(0,0,0,0.05);
+}
+
+.logo{
+    font-weight:600;
+    font-size:18px;
+    color:#334155;
+}
+
+.nav-right button{
+    background:#6366f1;
+    color:white;
+    border:none;
+    padding:8px 16px;
+    border-radius:6px;
+    cursor:pointer;
+    transition:0.2s;
+}
+
+.nav-right button:hover{
+    background:#4f46e5;
+    transform:translateY(-1px);
+}
+
+/* PAGE */
+
+.page{
+    max-width:780px;
+    margin:auto;
+    padding:60px 20px;
+}
+
+/* HEADER */
+
+.header{
+    margin-bottom:25px;
+}
+
+.header h1{
+    margin:0;
+    font-size:28px;
+    color:#1e293b;
+}
+
+.header p{
+    color:#64748b;
+    margin-top:6px;
+}
+
+/* MAIN CARD */
+
+.container{
+    background:white;
+    padding:28px;
+    border-radius:14px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.08);
+}
+
+/* CREATE BUTTON */
+
+.createBtn{
+    background:#6366f1;
+    color:white;
+    border:none;
+    padding:10px 16px;
+    border-radius:8px;
+    cursor:pointer;
+    font-size:14px;
+    margin-bottom:20px;
+    transition:0.25s;
+}
+
+.createBtn:hover{
+    background:#4f46e5;
+    transform:translateY(-2px);
+    box-shadow:0 6px 15px rgba(99,102,241,0.25);
+}
+
+/* TEST CARDS */
+
+.testCard{
+    border:1px solid #e2e8f0;
+    padding:16px;
+    border-radius:10px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-top:12px;
+    background:#f9fafb;
+    transition:0.25s;
+}
+
+.testCard:hover{
+    transform:translateY(-2px);
+    box-shadow:0 6px 18px rgba(0,0,0,0.08);
+}
+
+/* TEST NAME */
+
+.testName{
+    font-size:15px;
+    color:#1e293b;
+    font-weight:500;
+}
+
+/* VIEW BUTTON */
+
+.viewBtn{
+    background:#10b981;
+    color:white;
+    border:none;
+    padding:8px 14px;
+    border-radius:6px;
+    cursor:pointer;
+    font-size:13px;
+    transition:0.2s;
+}
+
+.viewBtn:hover{
+    background:#059669;
+    transform:translateY(-1px);
+}
+
+</style>
+</head>
+
+
+<body>
+
+<!-- NAVBAR -->
+
+<div class="navbar">
+
+    <div class="logo">AI Counselor</div>
+
+    <div class="nav-right">
+        <button onclick="window.location.href='dashboard.html'">
+            Dashboard
+        </button>
+    </div>
+
+</div>
+
+
+<!-- PAGE -->
+
+<div class="page">
+
+<div class="header">
+    <h1>Mental Health Tests</h1>
+    <p>Manage and edit your assessments</p>
+</div>
+
+
+<div class="container">
+
+<button class="createBtn" onclick="createTest()">
++ Create New Test
+</button>
+
+<div id="tests"></div>
+
+</div>
+
+</div>
+
+
+<script>
+
+function viewTest(id){
+    window.location.href = "manage_tests.html?test_id=" + id;
+}
+
+async function loadTests(){
+
+    const res = await fetch("http://127.0.0.1:5000/tests");
+    const data = await res.json();
+
+    let html = "";
+
+    data.tests.forEach(test => {
+
+        html += `
+        <div class="testCard">
+
+            <div class="testName">${test.test_name}</div>
+
+            <button class="viewBtn" onclick="viewTest('${test.id}')">
+                View
+            </button>
+
+        </div>
+        `;
+
+    });
+
+    document.getElementById("tests").innerHTML = html;
+}
+
+function createTest(){
+    window.location.href = "create_test.html";
+}
+
+loadTests();
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<title>Create Assessment</title>
+
+<style>
+
+/* PAGE */
+
+body{
+    margin:0;
+    font-family:Segoe UI;
+    background:linear-gradient(135deg,#eef2ff,#f8fafc);
+    min-height:100vh;
+}
+
+/* NAVBAR */
+
+.navbar{
+    background:white;
+    padding:18px 40px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    box-shadow:0 3px 12px rgba(0,0,0,0.05);
+}
+
+.logo{
+    font-weight:600;
+    font-size:18px;
+    color:#334155;
+}
+
+.nav-right button{
+    background:#6366f1;
+    color:white;
+    border:none;
+    padding:8px 16px;
+    border-radius:6px;
+    cursor:pointer;
+    transition:0.2s;
+}
+
+.nav-right button:hover{
+    background:#4f46e5;
+    transform:translateY(-1px);
+}
+
+/* PAGE CONTENT */
+
+.page{
+    max-width:780px;
+    margin:auto;
+    padding:60px 20px;
+}
+
+/* HEADER */
+
+.header{
+    margin-bottom:30px;
+}
+
+.header h1{
+    margin:0;
+    font-size:30px;
+    color:#1e293b;
+}
+
+.header p{
+    color:#64748b;
+    margin-top:6px;
+}
+
+/* BUILDER CARD */
+
+.builder{
+    background:white;
+    padding:30px;
+    border-radius:14px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.08);
+}
+
+/* INPUTS */
+
+input, textarea{
+    width:100%;
+    padding:12px;
+    border-radius:8px;
+    border:1px solid #e2e8f0;
+    font-size:14px;
+    margin-top:10px;
+    transition:0.2s;
+}
+
+textarea{
+    height:80px;
+    resize:none;
+}
+
+input:focus, textarea:focus{
+    outline:none;
+    border-color:#6366f1;
+    box-shadow:0 0 0 3px rgba(99,102,241,0.15);
+}
+
+/* BUTTONS */
+
+.actions{
+    display:flex;
+    gap:12px;
+    margin-top:18px;
+}
+
+.btn{
+    flex:1;
+    padding:12px;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    font-size:14px;
+    transition:0.25s;
+}
+
+.primary{
+    background:#6366f1;
+    color:white;
+}
+
+.primary:hover{
+    background:#4f46e5;
+    transform:translateY(-2px);
+    box-shadow:0 6px 15px rgba(99,102,241,0.25);
+}
+
+.success{
+    background:#10b981;
+    color:white;
+}
+
+.success:hover{
+    background:#059669;
+    transform:translateY(-2px);
+    box-shadow:0 6px 15px rgba(16,185,129,0.25);
+}
+
+/* QUESTION CARD */
+
+.questionCard{
+    border:1px solid #e2e8f0;
+    padding:18px;
+    border-radius:10px;
+    margin-top:18px;
+    background:#f9fafb;
+    transition:0.25s;
+}
+
+.questionCard:hover{
+    box-shadow:0 6px 18px rgba(0,0,0,0.08);
+    transform:translateY(-2px);
+}
+
+.questionHeader{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:10px;
+}
+
+.questionHeader h3{
+    margin:0;
+    font-size:16px;
+    color:#1e293b;
+}
+
+.deleteBtn{
+    background:#ef4444;
+    color:white;
+    border:none;
+    padding:4px 10px;
+    border-radius:6px;
+    cursor:pointer;
+    font-size:12px;
+    transition:0.2s;
+}
+
+.deleteBtn:hover{
+    background:#dc2626;
+}
+
+/* OPTIONS */
+
+.options{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    margin-top:10px;
+}
+
+</style>
+</head>
+
+
+<body>
+
+<!-- NAVBAR -->
+
+<div class="navbar">
+    <div class="logo">AI Counselor</div>
+
+    <div class="nav-right">
+        <button onclick="window.location.href='dashboard.html'">
+            Dashboard
+        </button>
+    </div>
+</div>
+
+
+<!-- PAGE -->
+
+<div class="page">
+
+    <div class="header">
+        <h1>Create Mental Health Assessment</h1>
+        <p>Build a new test for students</p>
+    </div>
+
+
+    <div class="builder">
+
+        <input id="testName" placeholder="Test Name">
+
+        <div id="questions"></div>
+
+        <div class="actions">
+            <button class="btn primary" onclick="addQuestion()">
+                + Add Question
+            </button>
+
+            <button class="btn success" onclick="publishTest()">
+                Publish Test
+            </button>
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+let questionCount = 0;
+
+
+/* ADD QUESTION */
+
+function addQuestion(){
+
+    questionCount++;
+
+    let container = document.getElementById("questions");
+
+    let card = document.createElement("div");
+
+    card.className = "questionCard";
+    card.id = "card" + questionCount;
+    card.scrollIntoView({behavior:"smooth"})
+
+    card.innerHTML = `
+        <div class="questionHeader">
+            <h3>Question ${questionCount}</h3>
+
+            <button class="deleteBtn"
+                    onclick="removeQuestion(${questionCount})">
+                Delete
+            </button>
+        </div>
+
+        <textarea placeholder="Enter question"></textarea>
+
+        <div class="options">
+            <input placeholder="Option 1">
+            <input placeholder="Option 2">
+            <input placeholder="Option 3">
+            <input placeholder="Option 4">
+        </div>
+    `;
+   
+
+    container.appendChild(card);
+}
+
+
+/* REMOVE QUESTION */
+
+function removeQuestion(id){
+
+    let card = document.getElementById("card" + id);
+
+    if(card){
+        card.remove();
+    }
+
+    updateQuestionNumbers();
+}
+
+
+/* UPDATE QUESTION NUMBERS */
+
+function updateQuestionNumbers(){
+
+    let cards = document.querySelectorAll(".questionCard")
+
+    cards.forEach((card,index)=>{
+
+        let number = index + 1
+
+        card.querySelector("h3").innerText = "Question " + number
+
+        let deleteBtn = card.querySelector(".deleteBtn")
+
+        deleteBtn.setAttribute("onclick","removeQuestion("+number+")")
+
+        card.id = "card" + number
+    })
+
+    questionCount = cards.length
+}
+
+
+/* PUBLISH TEST */
+
+async function publishTest(){
+
+    let testName = document.getElementById("testName").value;
+
+    if(testName === ""){
+        alert("Enter test name");
+        return;
+    }
+
+    const res = await fetch("http://127.0.0.1:5000/create_test",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({name:testName})
+    });
+
+    const data = await res.json();
+
+    if(!data.success){
+        alert("Test creation failed");
+        return;
+    }
+
+    let test_id = data.test_id;
+
+    let cards = document.querySelectorAll(".questionCard");
+
+    for(let card of cards){
+
+        let q = card.querySelector("textarea").value;
+        let inputs = card.querySelectorAll("input");
+
+        let option1 = inputs[0].value;
+        let option2 = inputs[1].value;
+        let option3 = inputs[2].value;
+        let option4 = inputs[3].value;
+
+        await fetch("http://127.0.0.1:5000/add_question",{
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body:JSON.stringify({
+                test_id,
+                question:q,
+                option1,
+                option2,
+                option3,
+                option4
+            })
+        });
+    }
+
+    window.location.href = "tests.html";
+}
+
+</script>
+
+</body>
+</html>

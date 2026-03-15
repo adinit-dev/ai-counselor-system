@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<title>Student Dashboard</title>
+
+<style>
+
+/* PAGE */
+
+body{
+margin:0;
+font-family:Segoe UI, system-ui;
+background:linear-gradient(135deg,#eef2ff,#f8fafc);
+}
+
+/* NAVBAR */
+
+.navbar{
+height:64px;
+background:white;
+display:flex;
+align-items:center;
+justify-content:space-between;
+padding:0 40px;
+border-bottom:1px solid #e2e8f0;
+box-shadow:0 2px 8px rgba(0,0,0,0.04);
+}
+
+.logo{
+font-weight:700;
+font-size:18px;
+color:#1e293b;
+}
+
+.logout{
+background:#ef4444;
+color:white;
+border:none;
+padding:8px 16px;
+border-radius:8px;
+cursor:pointer;
+font-size:14px;
+font-weight:500;
+transition:.2s;
+}
+
+.logout:hover{
+background:#dc2626;
+transform:translateY(-1px);
+box-shadow:0 6px 14px rgba(239,68,68,0.25);
+}
+
+/* CONTAINER */
+
+.container{
+max-width:900px;
+margin:auto;
+padding:40px 20px;
+}
+
+/* HEADER */
+
+.title{
+font-size:28px;
+font-weight:700;
+color:#1e293b;
+margin-bottom:6px;
+}
+
+.subtitle{
+color:#64748b;
+margin-bottom:30px;
+font-size:15px;
+}
+
+/* TEST CARDS */
+
+.testCard{
+border:1px solid #e2e8f0;
+border-radius:12px;
+padding:20px;
+margin-bottom:16px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+background:white;
+box-shadow:0 4px 14px rgba(0,0,0,0.06);
+transition:.25s;
+}
+
+.testCard:hover{
+transform:translateY(-3px);
+box-shadow:0 10px 24px rgba(0,0,0,0.12);
+}
+
+/* TEST NAME */
+
+.testName{
+font-size:16px;
+font-weight:500;
+color:#334155;
+}
+
+/* BUTTON */
+
+.startBtn{
+background:#10b981;
+color:white;
+border:none;
+padding:8px 18px;
+border-radius:8px;
+cursor:pointer;
+font-size:14px;
+font-weight:500;
+transition:.2s;
+}
+
+.startBtn:hover{
+background:#059669;
+transform:translateY(-1px);
+box-shadow:0 6px 14px rgba(16,185,129,0.25);
+}
+
+.sectionTitle{
+font-size:20px;
+font-weight:600;
+color:#1e293b;
+margin-bottom:15px;
+}
+
+/* RESULTS TABLE */
+
+.resultsTable{
+width:100%;
+border-collapse:collapse;
+background:white;
+border-radius:12px;
+overflow:hidden;
+box-shadow:0 6px 18px rgba(0,0,0,0.08);
+margin-top:10px;
+}
+
+.resultsTable th{
+background:#6366f1;
+color:white;
+padding:12px;
+font-size:14px;
+}
+
+.resultsTable td{
+padding:12px;
+text-align:center;
+border-top:1px solid #eef2f7;
+font-size:14px;
+}
+
+.resultsTable tr:hover{
+background:#f8fafc;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+
+<div class="navbar">
+
+<div class="logo">
+🧠 AI Counselor
+</div>
+
+<button class="logout" onclick="logout()">
+Logout
+</button>
+
+</div>
+
+
+<div class="container">
+
+<div class="title">
+Student Dashboard
+</div>
+
+<div class="subtitle">
+Welcome to the Mental Health Assessment Portal
+</div>
+
+<div class="sectionTitle">Available Tests</div>
+<div id="tests"></div>
+
+<div class="sectionTitle" style="margin-top:40px;">Completed Tests</div>
+
+<table class="resultsTable">
+
+<thead>
+<tr>
+<th>Test</th>
+<th>Status</th>
+</tr>
+</thead>
+
+<tbody id="completedTests"></tbody>
+
+</table>
+
+</div>
+
+
+<script>
+
+async function loadTests(){
+
+const res = await fetch("http://127.0.0.1:5000/tests")
+const data = await res.json()
+
+let html=""
+
+data.tests.forEach(test=>{
+
+html+=`
+
+<div class="testCard">
+
+<div class="testName">
+${test.test_name}
+</div>
+
+<button class="startBtn"
+onclick="startTest('${test.id}')">
+Start Test
+</button>
+
+</div>
+
+`
+
+})
+
+document.getElementById("tests").innerHTML=html
+
+}
+
+function startTest(id){
+window.location.href="test.html?test_id="+id
+}
+
+function logout(){
+
+localStorage.removeItem("student_id")
+
+window.location.href="../../index.html"
+
+}
+
+async function loadCompletedTests(){
+
+const student_id = localStorage.getItem("student_id")
+
+const res = await fetch("http://127.0.0.1:5000/student/completed/"+student_id)
+
+const data = await res.json()
+
+let html=""
+
+data.tests.forEach(test=>{
+
+html+=`
+
+<tr>
+
+<td>${test.test_name}</td>
+
+<td style="color:#10b981;font-weight:500">
+Completed
+</td>
+
+</tr>
+
+`
+
+})
+
+document.getElementById("completedTests").innerHTML = html
+
+}
+
+
+loadTests()
+loadCompletedTests()
+
+
+</script>
+
+</body>
+</html>

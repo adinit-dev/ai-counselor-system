@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+<title>AI Counselor System</title>
+
+<style>
+
+body{
+margin:0;
+font-family:Segoe UI;
+background:linear-gradient(135deg,#667eea,#764ba2);
+color:white;
+}
+
+/* NAVBAR */
+
+.navbar{
+display:flex;
+justify-content:space-between;
+padding:20px 60px;
+}
+
+.logo{
+font-size:22px;
+font-weight:bold;
+}
+
+/* HERO */
+
+.hero{
+display:flex;
+align-items:center;
+justify-content:space-between;
+padding:60px 80px;
+}
+
+.hero-text{
+max-width:550px;
+}
+
+.hero-text h1{
+font-size:48px;
+margin-bottom:20px;
+}
+
+.hero-text p{
+font-size:18px;
+line-height:1.6;
+}
+
+.features{
+margin-top:25px;
+}
+
+.features div{
+margin:8px 0;
+}
+
+/* PORTAL */
+
+.portal{
+background:white;
+color:black;
+padding:35px;
+width:350px;
+border-radius:14px;
+box-shadow:0 20px 40px rgba(0,0,0,0.3);
+}
+
+.portal h2{
+text-align:center;
+margin-bottom:15px;
+}
+
+.role{
+display:flex;
+justify-content:center;
+gap:25px;
+margin:15px 0;
+align-items:center;
+}
+
+.role label{
+display:flex;
+align-items:center;
+gap:6px;
+cursor:pointer;
+font-size:15px;
+}
+
+.role input{
+transform:scale(1.2);
+cursor:pointer;
+}
+
+.tabs{
+display:flex;
+justify-content:center;
+margin-bottom:20px;
+}
+
+.tab{
+padding:10px 20px;
+cursor:pointer;
+border-bottom:3px solid transparent;
+}
+
+.active{
+border-color:#667eea;
+font-weight:bold;
+}
+
+input{
+width:100%;
+padding:10px;
+margin:8px 0;
+border-radius:6px;
+border:1px solid #ccc;
+}
+
+button{
+width:100%;
+padding:12px;
+margin-top:10px;
+border:none;
+border-radius:6px;
+background:#667eea;
+color:white;
+font-size:16px;
+cursor:pointer;
+}
+
+button:hover{
+background:#5563d1;
+}
+
+/* FEATURES SECTION */
+
+.section2{
+background:white;
+color:black;
+padding:80px;
+text-align:center;
+}
+
+.cards{
+display:flex;
+justify-content:center;
+gap:40px;
+margin-top:40px;
+}
+
+.card{
+background:#f4f6fb;
+padding:30px;
+width:260px;
+border-radius:12px;
+box-shadow:0 5px 12px rgba(0,0,0,0.15);
+transition:all 0.3s ease;
+cursor:pointer;
+}
+
+.card:hover{
+
+transform:translateY(-10px) scale(1.03);
+
+box-shadow:0 20px 40px rgba(0,0,0,0.25);
+
+background:white;
+
+}
+
+.card h3{
+color:#667eea;
+margin-bottom:10px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="navbar">
+<div class="logo">AI Counselor</div>
+</div>
+
+<div class="hero">
+
+<div class="hero-text">
+
+<h1>AI Mental Health Screening Platform</h1>
+
+<p>
+Helping students identify anxiety, stress and mental health risks early.
+Our AI powered assessment platform helps counselors monitor wellbeing
+and provide early support.
+</p>
+
+<div class="features">
+
+<div>✔ AI based risk detection</div>
+<div>✔ Private mental health assessments</div>
+<div>✔ Counselor monitoring dashboard</div>
+<div>✔ Early intervention system</div>
+
+</div>
+
+</div>
+
+<div class="portal">
+
+<h2>Access Portal</h2>
+
+<div class="role">
+
+<label>
+<input type="radio" name="role" value="student" checked>
+Student
+</label>
+
+<label>
+<input type="radio" name="role" value="counselor">
+Counselor
+</label>
+
+</div>
+
+<div class="tabs">
+
+<div class="tab active" onclick="showLogin()">Login</div>
+<div class="tab" id="signupTab" onclick="showSignup()">Signup</div>
+
+</div>
+
+<div id="formArea">
+
+<input id="email" placeholder="Email">
+<input id="password" type="password" placeholder="Password">
+
+<button onclick="login()">Login</button>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="section2">
+
+<h2>Why This Platform Matters</h2>
+
+<div class="cards">
+
+<div class="card">
+<h3>Early Detection</h3>
+<p>
+AI analyzes responses to identify potential stress,
+anxiety or depression before it becomes severe.
+</p>
+</div>
+
+<div class="card">
+<h3>Student Privacy</h3>
+<p>
+Students can complete mental health assessments
+privately without stigma or judgment.
+</p>
+</div>
+
+<div class="card">
+<h3>Counselor Insights</h3>
+<p>
+Counselors receive dashboards highlighting
+students who may need immediate support.
+</p>
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+let mode="login"
+
+/* GET SELECTED ROLE */
+
+function getRole(){
+return document.querySelector('input[name="role"]:checked').value
+}
+
+/* ROLE SWITCH HANDLER */
+
+document.querySelectorAll('input[name="role"]').forEach(radio=>{
+radio.addEventListener("change",updateTabs)
+})
+
+function updateTabs(){
+
+let role = getRole()
+
+if(role === "counselor"){
+
+document.getElementById("signupTab").style.display="none"
+showLogin()
+
+}else{
+
+document.getElementById("signupTab").style.display="block"
+
+}
+
+}
+
+/* SHOW LOGIN FORM */
+
+function showLogin(){
+
+document.querySelectorAll(".tab")[0].classList.add("active")
+document.querySelectorAll(".tab")[1].classList.remove("active")
+
+document.getElementById("formArea").innerHTML=`
+
+<input id="email" placeholder="Email">
+<input id="password" type="password" placeholder="Password">
+
+<button onclick="login()">Login</button>
+
+`
+}
+
+
+/* SHOW SIGNUP FORM */
+
+function showSignup(){
+
+document.querySelectorAll(".tab")[1].classList.add("active")
+document.querySelectorAll(".tab")[0].classList.remove("active")
+
+document.getElementById("formArea").innerHTML=`
+
+<input id="name" placeholder="Name">
+<input id="email" placeholder="Email">
+<input id="password" type="password" placeholder="Password">
+
+<button onclick="signup()">Signup</button>
+
+`
+}
+
+
+/* LOGIN */
+
+async function login(){
+
+let role = getRole()
+
+let email = document.getElementById("email").value
+let password = document.getElementById("password").value
+
+let url = role==="student" ? "/login" : "/counselor_login"
+
+const response = await fetch("http://127.0.0.1:5000"+url,{
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+email:email,
+password:password
+})
+})
+
+const data = await response.json()
+
+if(data.status === "success"){
+
+if(role==="student"){
+
+localStorage.setItem("student_id",data.id)
+localStorage.setItem("student_name",data.name)
+
+window.location.href="frontend/student/dashboard.html"
+
+}else{
+
+localStorage.setItem("counselor_id",data.id)
+
+window.location.href="frontend/counselor/dashboard.html"
+
+}
+
+}else{
+
+alert("Invalid email or password")
+
+}
+
+}
+
+
+/* SIGNUP */
+
+async function signup(){
+
+let name=document.getElementById("name").value
+let email=document.getElementById("email").value
+let password=document.getElementById("password").value
+
+await fetch("http://127.0.0.1:5000/student_signup",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({name,email,password})
+})
+
+alert("Signup successful. Please login.")
+
+showLogin()
+
+}
+
+</script>
+
+
+
+</body>
+
+</html>
+
+
+

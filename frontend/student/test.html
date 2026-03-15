@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<title>Mental Health Test</title>
+
+<style>
+
+/* PAGE */
+
+body{
+margin:0;
+font-family:Segoe UI, system-ui;
+background:linear-gradient(135deg,#eef2ff,#f8fafc);
+display:flex;
+justify-content:center;
+padding:40px 20px;
+}
+
+/* MAIN CONTAINER */
+
+.container{
+width:100%;
+max-width:750px;
+}
+
+/* TITLE */
+
+#testTitle{
+font-size:30px;
+font-weight:700;
+color:#1e293b;
+margin-bottom:25px;
+text-align:center;
+}
+
+/* QUESTION CARD */
+
+.test-card{
+background:white;
+padding:22px;
+border-radius:12px;
+margin-bottom:18px;
+border:1px solid #e2e8f0;
+box-shadow:0 6px 16px rgba(0,0,0,0.06);
+transition:.25s;
+}
+
+.test-card:hover{
+transform:translateY(-3px);
+box-shadow:0 12px 28px rgba(0,0,0,0.12);
+}
+
+/* QUESTION TEXT */
+
+.test-card h3{
+margin-top:0;
+font-size:20px;
+font-weight:600;
+color:#1e293b;
+margin-bottom:14px;
+line-height:1.5;
+}
+
+/* OPTIONS */
+
+label{
+display:block;
+padding:11px 12px;
+border-radius:8px;
+cursor:pointer;
+transition:.15s;
+font-size:20px;
+color:#334155;
+}
+
+label:hover{
+background:#f1f5f9;
+}
+
+/* RADIO */
+
+input[type="radio"]{
+margin-right:8px;
+}
+
+/* SUBMIT BUTTON */
+
+.submitBtn{
+display:block;
+margin:25px auto;
+background:#6366f1;
+color:white;
+border:none;
+padding:12px 28px;
+border-radius:10px;
+font-size:15px;
+font-weight:600;
+cursor:pointer;
+transition:.2s;
+}
+
+.submitBtn:hover{
+background:#4f46e5;
+transform:translateY(-2px);
+box-shadow:0 8px 18px rgba(99,102,241,0.35);
+}
+
+.question-number{
+font-size:16px;
+font-weight:700;
+color:#6366f1;
+margin-bottom:8px;
+letter-spacing:0.6px;
+text-transform:uppercase;
+}
+
+label{
+display:block;
+padding:10px 12px;
+border-radius:8px;
+cursor:pointer;
+transition:.15s;
+font-size:14px;
+color:#334155;
+}
+
+label:hover{
+background:#f1f5f9;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h1 id="testTitle">Mental Health Test</h1>
+
+<div id="questions"></div>
+
+<button class="submitBtn" onclick="submitTest()">
+Submit Test
+</button>
+
+</div>
+
+<script>
+
+// get test id from URL
+const params = new URLSearchParams(window.location.search)
+const testId = params.get("test_id")
+
+// load test name
+fetch("http://127.0.0.1:5000/test/" + testId)
+.then(res => res.json())
+.then(data => {
+document.getElementById("testTitle").innerText = data.name
+})
+
+
+// load questions
+fetch("http://127.0.0.1:5000/questions/" + testId)
+.then(res => res.json())
+.then(data => {
+
+let html = ""
+
+data.questions.forEach((q,index) => {
+
+html += `
+<div class="test-card">
+
+<div class="question-number">
+Question ${index + 1}
+</div>
+
+<h3>${q.question}</h3>
+
+<label><input type="radio" name="${q.id}" value="${q.option1}"> ${q.option1}</label>
+<label><input type="radio" name="${q.id}" value="${q.option2}"> ${q.option2}</label>
+<label><input type="radio" name="${q.id}" value="${q.option3}"> ${q.option3}</label>
+<label><input type="radio" name="${q.id}" value="${q.option4}"> ${q.option4}</label>
+
+</div>
+`
+
+})
+
+document.getElementById("questions").innerHTML = html
+
+})
+
+
+// submit test
+async function submitTest(){
+
+const studentId = localStorage.getItem("student_id")
+
+if(!studentId){
+alert("Please login again")
+window.location.href="../../index.html"
+return
+}
+
+const questions = document.querySelectorAll(".test-card")
+
+for(let q of questions){
+
+const checked = q.querySelector("input[type=radio]:checked")
+
+if(!checked){
+alert("Please answer all questions before submitting.")
+return
+}
+
+}
+
+await fetch("http://127.0.0.1:5000/finish_test",{
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+student_id:studentId,
+test_id:testId
+})
+})
+
+window.location.href="dashboard.html"
+
+}
+
+</script>
+
+</body>
+</html>
