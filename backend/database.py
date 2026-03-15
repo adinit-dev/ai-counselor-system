@@ -2,16 +2,14 @@ import sqlite3
 import os
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_PATH = os.path.join(BASE_DIR, "..", "database", "mental_health.db")
+ROOT_DIR = os.path.dirname(BASE_DIR)
 
-DB_PATH = os.path.abspath(DB_PATH)
+DB_PATH = os.path.join(ROOT_DIR, "database", "mental_health.db")
 
-# ensure database folder exists
-os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
+print("Using DB:", DB_PATH)
 
 conn = sqlite3.connect(DB_PATH)
 cursor = conn.cursor()
-
 # ---------------- STUDENTS ----------------
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS students(
