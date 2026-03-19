@@ -13,8 +13,9 @@ CORS(app,
      methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"]
 )
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DB_PATH = os.path.join(BASE_DIR, "database", "mental_health.db")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(BASE_DIR, "..", "database", "mental_health.db")
+DB_PATH = os.path.abspath(DB_PATH)
 
 @app.after_request
 def after_request(response):
