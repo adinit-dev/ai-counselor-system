@@ -3,7 +3,7 @@ from flask_cors import CORS
 import sqlite3
 import os
 import uuid
-from ai_model import generate_ai_insight
+from backend.ai_model import generate_ai_insight
 
 app = Flask(__name__)
 CORS(app,
