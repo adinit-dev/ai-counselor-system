@@ -5,7 +5,8 @@ import os
 
 # ---------------- SAFE DB PATH ----------------
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_PATH = os.path.join(BASE_DIR, "database", "mental_health.db")
+DB_PATH = os.path.join(BASE_DIR, "..", "database", "mental_health.db")
+DB_PATH = os.path.abspath(DB_PATH)
 
 
 # ---------------- TRAIN MODEL ----------------

@@ -1,3 +1,7 @@
+
+const BASE_URL = "https://ai-counselor-system.onrender.com";
+
+
 // LOGIN FUNCTION
 async function login(){
 
@@ -5,7 +9,7 @@ const role = document.querySelector('input[name="role"]:checked').value;
 
 const email = document.getElementById("email").value;
 const password = document.getElementById("password").value;
-const BASE_URL = "https://ai-counselor-system.onrender.com";
+
 
 let url;
 
