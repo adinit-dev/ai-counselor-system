@@ -3,3 +3,5 @@ flask-cors
 gunicorn
 openai
 pandas
+scikit-learn
+numpy
