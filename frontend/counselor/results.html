@@ -96,6 +96,8 @@ cursor:pointer;
 
 </div>
 
+<script src="../js/script.js"></script>
+
 <script>
 
 // get student id from URL
@@ -119,7 +121,8 @@ if(!studentId || studentId === "undefined"){
 
 try{
 
-const res = await fetch(`http://127.0.0.1:5000/student_profile/${studentId}`)
+const res = await fetch(`${BASE_URL}/student_profile/${studentId}`)
+
 
 if(!res.ok){
     throw new Error("API failed")

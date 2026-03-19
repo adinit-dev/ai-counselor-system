@@ -147,6 +147,7 @@ Submit Test
 
 </div>
 
+<script src="../js/script.js"></script>
 <script>
 
 // get test id from URL
@@ -154,7 +155,7 @@ const params = new URLSearchParams(window.location.search)
 const testId = params.get("test_id")
 
 // load test name
-fetch("http://127.0.0.1:5000/test/" + testId)
+fetch(`${BASE_URL}/test/${testId}`)
 .then(res => res.json())
 .then(data => {
 document.getElementById("testTitle").innerText = data.title
@@ -162,7 +163,7 @@ document.getElementById("testTitle").innerText = data.title
 
 
 // load questions
-fetch("http://127.0.0.1:5000/questions/" + testId)
+fetch(`${BASE_URL}/questions/${testId}`)
 .then(res => res.json())
 .then(data => {
 
@@ -223,7 +224,7 @@ return
 
 }
 
-await fetch("http://127.0.0.1:5000/finish_test",{
+await fetch(`${BASE_URL}/finish_test`, {
 method:"POST",
 headers:{
 "Content-Type":"application/json"

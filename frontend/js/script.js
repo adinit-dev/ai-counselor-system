@@ -5,25 +5,25 @@ const role = document.querySelector('input[name="role"]:checked').value;
 
 const email = document.getElementById("email").value;
 const password = document.getElementById("password").value;
+const BASE_URL = "https://ai-counselor-system.onrender.com";
 
 let url;
 
 if(role === "student"){
-url = "http://127.0.0.1:5000/login";
-}
-else{
-url = "http://127.0.0.1:5000/counselor_login";
+    url = "/login";
+}else{
+    url = "/counselor_login";
 }
 
-const response = await fetch(url,{
-method:"POST",
-headers:{
-"Content-Type":"application/json"
-},
-body:JSON.stringify({
-email:email,
-password:password
-})
+const response = await fetch(`${BASE_URL}${url}`, {
+    method: "POST",
+    headers: {
+        "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+        email: email,
+        password: password
+    })
 });
 
 const data = await response.json();
@@ -65,32 +65,28 @@ window.location.href = "../index.html";
 }
 
 
+
 // LOAD AVAILABLE TESTS
-async function loadTests(){
+async function loadTests() {
 
-const response = await fetch("http://127.0.0.1:5000/tests");
-const data = await response.json();
+    const response = await fetch(`${BASE_URL}/tests`);
+    const data = await response.json();
 
-let html = "";
+    let html = "";
 
-data.tests.forEach(test => {
+    data.tests.forEach(test => {
 
-html += `
-<div class="test-card">
+        html += `
+        <div class="test-card">
+            <h3>${test.name}</h3>
+            <button onclick="startTest(${test.id})">
+                Start Test
+            </button>
+        </div>
+        `;
+    });
 
-<h3>${test.name}</h3>
-
-<button onclick="startTest(${test.id})">
-Start Test
-</button>
-
-</div>
-`;
-
-});
-
-document.getElementById("tests").innerHTML = html;
-
+    document.getElementById("testsContainer").innerHTML = html;
 }
 
 

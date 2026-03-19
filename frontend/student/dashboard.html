@@ -210,12 +210,12 @@ Welcome to the Mental Health Assessment Portal
 
 </div>
 
-
+<script src="../js/script.js"></script>
 <script>
 
 async function loadTests(){
 
-    const res = await fetch("http://127.0.0.1:5000/tests")
+    const res = await fetch(`${BASE_URL}/tests`)
     const data = await res.json()
 
     let html=""
@@ -251,36 +251,28 @@ window.location.href="../../index.html"
 
 }
 
-async function loadCompletedTests(){
+async function loadCompletedTests() {
 
-const student_id = localStorage.getItem("student_id")
+    const student_id = localStorage.getItem("student_id");
 
-const res = await fetch("http://127.0.0.1:5000/student/completed/"+student_id)
+    const res = await fetch(`${BASE_URL}/student/completed/${student_id}`);
+    const data = await res.json();
 
-const data = await res.json()
+    let html = "";
 
-let html=""
+    data.tests.forEach(test => {
 
-data.tests.forEach(test=>{
+        html += `
+        <tr>
+            <td>${test.test_name}</td>
+            <td style="color:#10b981;font-weight:500">
+                Completed
+            </td>
+        </tr>
+        `;
+    });
 
-html+=`
-
-<tr>
-
-<td>${test.test_name}</td>
-
-<td style="color:#10b981;font-weight:500">
-Completed
-</td>
-
-</tr>
-
-`
-
-})
-
-document.getElementById("completedTests").innerHTML = html
-
+    document.getElementById("completedTests").innerHTML = html;
 }
 
 

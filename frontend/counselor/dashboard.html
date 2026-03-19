@@ -293,7 +293,7 @@ Manage Tests
 </div>
 
 </div>
-
+<script src="../js/script.js"></script>
 
 <script>
 
@@ -333,7 +333,7 @@ scales:{y:{beginAtZero:true}}
 
 async function loadResults(){
 
-const res=await fetch("http://127.0.0.1:5000/counselor/results")
+const res = await fetch(`${BASE_URL}/counselor/results`);
 const data=await res.json()
 
 const table=document.getElementById("resultsTable")
@@ -376,7 +376,7 @@ drawChart(low,medium,high)
 
 async function loadProfile(studentId){
 
-const res = await fetch(`http://127.0.0.1:5000/student_profile/${studentId}`)
+const res = await fetch(`${BASE_URL}/student_profile/${studentId}`)
 const data = await res.json()
 
 document.getElementById("studentProfile").innerHTML=`

@@ -188,7 +188,7 @@ body{
 </div>
 
 </div>
-
+<script src="../js/script.js"></script>
 
 <script>
 
@@ -198,7 +198,8 @@ function viewTest(id){
 
 async function loadTests(){
 
-    const res = await fetch("http://127.0.0.1:5000/tests");
+    const res = await fetch(`${BASE_URL}/tests`);
+
     const data = await res.json();
 
     console.log(data); // optional debug

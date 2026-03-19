@@ -281,6 +281,7 @@ students who may need immediate support.
 </div>
 
 </div>
+<script src="../js/script.js"></script>
 
 <script>
 
@@ -363,7 +364,7 @@ let password = document.getElementById("password").value
 
 let url = role === "student" ? "/login" : "/counselor_login"
 
-const response = await fetch("http://127.0.0.1:5000" + url,{
+const response = await fetch(`${BASE_URL}${url}`, {
 method:"POST",
 headers:{
 "Content-Type":"application/json"
@@ -415,7 +416,7 @@ let name=document.getElementById("name").value
 let email=document.getElementById("email").value
 let password=document.getElementById("password").value
 
-const res = await fetch("http://127.0.0.1:5000/student_signup",{
+const res = await fetch(`${BASE_URL}/student_signup`, {
 method:"POST",
 headers:{"Content-Type":"application/json"},
 body:JSON.stringify({name,email,password})

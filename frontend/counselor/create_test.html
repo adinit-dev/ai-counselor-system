@@ -245,7 +245,7 @@ input:focus, textarea:focus{
     </div>
 
 </div>
-
+<script src="../js/script.js"></script>
 
 <script>
 
@@ -334,7 +334,7 @@ async function publishTest(){
 
     try{
 
-        const res = await fetch("http://127.0.0.1:5000/create_test",{
+        const res = await fetch(`${BASE_URL}/api/test`, {
             method:"POST",
             headers:{"Content-Type":"application/json"},
             body:JSON.stringify({title:testName})
@@ -366,7 +366,7 @@ async function publishTest(){
 
             let inputs = card.querySelectorAll("input");
 
-            await fetch("http://127.0.0.1:5000/add_question",{
+            await fetch(`${BASE_URL}/add_question`, {
                 method:"POST",
                 headers:{"Content-Type":"application/json"},
                 body:JSON.stringify({
