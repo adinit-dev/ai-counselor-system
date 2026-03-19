@@ -157,7 +157,7 @@ const testId = params.get("test_id")
 fetch("http://127.0.0.1:5000/test/" + testId)
 .then(res => res.json())
 .then(data => {
-document.getElementById("testTitle").innerText = data.name
+document.getElementById("testTitle").innerText = data.title
 })
 
 
@@ -166,9 +166,14 @@ fetch("http://127.0.0.1:5000/questions/" + testId)
 .then(res => res.json())
 .then(data => {
 
+console.log("DATA:", data); // 👈 DEBUG (see structure)
+
 let html = ""
 
-data.questions.forEach((q,index) => {
+// 👇 IMPORTANT — handle both cases
+const questions = data.questions ? data.questions : data
+
+questions.forEach((q,index) => {
 
 html += `
 <div class="test-card">
@@ -177,7 +182,7 @@ html += `
 Question ${index + 1}
 </div>
 
-<h3>${q.question}</h3>
+<h3>${q.question_text}</h3>
 
 <label><input type="radio" name="${q.id}" value="${q.option1}"> ${q.option1}</label>
 <label><input type="radio" name="${q.id}" value="${q.option2}"> ${q.option2}</label>

@@ -3,13 +3,25 @@ from flask_cors import CORS
 import sqlite3
 import os
 import uuid
+from ai_model import generate_ai_insight
 
 app = Flask(__name__)
-
-CORS(app)
+CORS(app,
+     supports_credentials=True,
+     resources={r"/*": {"origins": "*"}},
+     allow_headers=["Content-Type", "Authorization"],
+     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+)
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DB_PATH = os.path.join(BASE_DIR, "database", "mental_health.db")
+
+@app.after_request
+def after_request(response):
+    response.headers.add("Access-Control-Allow-Origin", "*")
+    response.headers.add("Access-Control-Allow-Headers", "Content-Type,Authorization")
+    response.headers.add("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
+    return response
 
 # ---------------- LOGIN ----------------
 @app.route('/login', methods=['POST'])
@@ -20,6 +32,9 @@ def login():
     email = data.get("email")
     password = data.get("password")
 
+    if not email.endswith("@nitap.ac.in"):
+        return jsonify({"status":"invalid_domain"})
+
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
@@ -29,7 +44,6 @@ def login():
     )
 
     user = cursor.fetchone()
-
     conn.close()
 
     if user:
@@ -40,38 +54,34 @@ def login():
         })
     else:
         return jsonify({"status":"error"})
-    
-
 
 
 # ---------------- GET TESTS ----------------
 @app.route("/tests")
 def get_tests():
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row
 
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
+        rows = conn.execute("SELECT * FROM tests").fetchall()
 
-    cursor.execute("SELECT id,test_name FROM tests")
+        tests = []
+        for row in rows:
+            tests.append({
+                "id": row["id"],
+                "title": row["title"]   # ✅ IMPORTANT
+            })
 
-    rows = cursor.fetchall()
+        conn.close()
 
-    tests = []
+        return jsonify(tests)
 
-    for row in rows:
-        tests.append({
-            "id": row[0],
-            "test_name": row[1]
-        })
-
-    conn.close()
-
-    return jsonify({"tests": tests})
-
-
+    except Exception as e:
+        print("ERROR IN /tests:", e)   # 👈 will show real error
+        return jsonify({"error": str(e)}), 500
 
 
 # ---------------- GET QUESTIONS ----------------
-
 @app.route("/questions/<test_id>")
 def get_questions(test_id):
 
@@ -86,7 +96,6 @@ def get_questions(test_id):
     rows = cursor.fetchall()
 
     questions=[]
-
     for r in rows:
         questions.append({
             "id": r[0],
@@ -98,49 +107,53 @@ def get_questions(test_id):
     })
 
     conn.close()
-
     return jsonify({"questions":questions})
 
-
-# ---------------- GET TEST NAME ----------------
 @app.route("/test/<int:test_id>", methods=["GET"])
 def get_test(test_id):
 
     conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
 
-    cursor.execute("SELECT test_name FROM tests WHERE id=?", (test_id,))
+    # ✅ FIXED COLUMN
+    cursor.execute("SELECT title FROM tests WHERE id=?", (test_id,))
     test = cursor.fetchone()
 
     conn.close()
 
-    return {"name": test[0]}
-
+    return {
+        "title": test["title"]
+    }
 
 # ---------------- CREATE TEST ----------------
 @app.route("/create_test", methods=["POST"])
 def create_test():
+    try:
+        data = request.json
+        title = data.get("title")
 
-    data = request.json
-    name = data["name"]
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
 
-    test_id = str(uuid.uuid4())
+        cursor.execute(
+            "INSERT INTO tests (title) VALUES (?)",
+            (title,)
+        )
 
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
+        test_id = cursor.lastrowid
 
-    cursor.execute(
-        "INSERT INTO tests(id,test_name) VALUES (?,?)",
-        (test_id, name)
-    )
+        conn.commit()
+        conn.close()
 
-    conn.commit()
-    conn.close()
+        return jsonify({
+            "success": True,
+            "test_id": test_id
+        })
 
-    return jsonify({
-        "success": True,
-        "test_id": test_id
-    })
+    except Exception as e:
+        print("CREATE TEST ERROR:", e)
+        return jsonify({"success": False}), 500
 
 
 # ---------------- ADD QUESTION ----------------
@@ -152,51 +165,41 @@ def add_question():
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
-    cursor.execute(
-        """
+    cursor.execute("""
         INSERT INTO questions
         (test_id, question_text, option1, option2, option3, option4)
         VALUES (?,?,?,?,?,?)
-        """,
-        (
-            data["test_id"],
-            data["question"],
-            data["option1"],
-            data["option2"],
-            data["option3"],
-            data["option4"]
-        )
-    )
+    """, (
+        data["test_id"],
+        data["question_text"],   # ✅ FIXED
+        data["option1"],
+        data["option2"],
+        data["option3"],
+        data["option4"]
+    ))
 
     conn.commit()
     conn.close()
 
     return jsonify({"success": True})
 
-
 # ---------------- SUBMIT RESPONSE ----------------
 @app.route("/submit_response", methods=["POST"])
 def submit_response():
 
     data = request.json
-    student_id = data["student_id"]
-    test_id = data["test_id"]
-    question_id = data["question_id"]
-    answer = data["answer"]
 
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
-    # delete old response for this student + test + question
     cursor.execute("""
         DELETE FROM responses
         WHERE student_id=? AND test_id=? AND question_id=?
-    """, (student_id, test_id, question_id))
+    """, (data["student_id"], data["test_id"], data["question_id"]))
 
-    # insert new response
     cursor.execute(
         "INSERT INTO responses (student_id, test_id, question_id, answer) VALUES (?, ?, ?, ?)",
-        (student_id, test_id, question_id, answer)
+        (data["student_id"], data["test_id"], data["question_id"], data["answer"])
     )
 
     conn.commit()
@@ -215,10 +218,7 @@ def calculate_risk(answers):
         "Always": 3
     }
 
-    score = 0
-
-    for ans in answers:
-        score += score_map.get(ans, 0)
+    score = sum(score_map.get(ans, 0) for ans in answers)
 
     if score <= 5:
         return score, "Low"
@@ -226,9 +226,41 @@ def calculate_risk(answers):
         return score, "Medium"
     else:
         return score, "High"
-    
 
 
+# ---------------- FINISH TEST ----------------
+@app.route("/finish_test", methods=["POST"])
+def finish_test():
+
+    data = request.json
+
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT answer
+        FROM responses
+        WHERE student_id=? AND test_id=?
+    """, (data["student_id"], data["test_id"]))
+
+    answers = [row[0] for row in cursor.fetchall()]
+
+    score, risk = calculate_risk(answers)
+
+    cursor.execute("""
+        DELETE FROM results
+        WHERE student_id=? AND test_id=?
+    """, (data["student_id"], data["test_id"]))
+
+    cursor.execute("""
+        INSERT INTO results (student_id, test_id, score, risk)
+        VALUES (?, ?, ?, ?)
+    """, (data["student_id"], data["test_id"], score, risk))
+
+    conn.commit()
+    conn.close()
+
+    return jsonify({"status": "success"})
 
 
 # ---------------- COUNSELOR RESULTS ----------------
@@ -237,33 +269,73 @@ def counselor_results():
 
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
 
-    students = conn.execute("""
-        SELECT id, name, email
-        FROM students
+    students = cursor.execute("""
+        SELECT id, name, email FROM students
     """).fetchall()
 
     results = []
 
     for s in students:
 
-        answers = conn.execute("""
-            SELECT answer
-            FROM responses
-            WHERE student_id = ?
-        """, (s["id"],)).fetchall()
+        student_id = s["id"]
 
-        answer_list = [a["answer"] for a in answers]
+        # ---------------- ATTENDANCE ----------------
+        cursor.execute("""
+            SELECT COUNT(*),
+                   SUM(CASE WHEN status='present' THEN 1 ELSE 0 END)
+            FROM attendance_log
+            WHERE student_id=?
+        """, (student_id,))
+        
+        row = cursor.fetchone()
+        total = row[0] if row and row[0] else 0
+        present = row[1] if row and row[1] else 0
+        attendance = (present / total) * 100 if total > 0 else 0
 
-        if len(answer_list) == 0:
-            continue
+        # ---------------- MARKS ----------------
+        cursor.execute("""
+            SELECT AVG(marks*1.0/max_marks)
+            FROM exam_results
+            WHERE student_id=?
+        """, (student_id,))
+        
+        row = cursor.fetchone()
+        marks = (row[0] if row and row[0] else 0) * 100
 
-        score, risk = calculate_risk(answer_list)
+        # ---------------- MENTAL SCORE ----------------
+        cursor.execute("""
+            SELECT AVG(score)
+            FROM results
+            WHERE student_id=?
+        """, (student_id,))
+        
+        row = cursor.fetchone()
+        mental_score = row[0] if row and row[0] else 5
+
+        # ---------------- RISK ----------------
+        cursor.execute("""
+            SELECT risk FROM results
+            WHERE student_id=?
+            ORDER BY id DESC LIMIT 1
+        """, (student_id,))
+        
+        row = cursor.fetchone()
+        risk = row[0] if row else "LOW"
+
+        # ---------------- SCORE (🔥 REAL FIX) ----------------
+        score = (
+            (attendance * 0.4) +
+            (marks * 0.4) +
+            ((10 - mental_score) * 10 * 0.2)
+        )
 
         results.append({
+            "id": student_id,
             "name": s["name"],
             "email": s["email"],
-            "score": score,
+            "score": round(score, 2),
             "risk": risk
         })
 
@@ -271,6 +343,10 @@ def counselor_results():
 
     return jsonify(results)
 
+
+
+
+# ---------------- COMPLETED TESTS ----------------
 @app.route("/student/completed/<student_id>")
 def completed_tests(student_id):
 
@@ -278,73 +354,122 @@ def completed_tests(student_id):
     cursor = conn.cursor()
 
     cursor.execute("""
-    SELECT tests.test_name
-    FROM results
-    JOIN tests ON results.test_id = tests.id
-    WHERE results.student_id = ?
-    """,(student_id,))
+SELECT tests.title, results.score, results.risk
+FROM results
+JOIN tests ON tests.id = results.test_id
+WHERE results.student_id = ?
+""", (student_id,))
 
     rows = cursor.fetchall()
 
     data = []
-
     for r in rows:
-        data.append({
-            "test_name": r[0]
-        })
+        data.append({"test_name": r[0]})
 
     conn.close()
-
     return jsonify({"tests":data})
 
-# ---------------- FINALIZE TEST ----------------
-@app.route("/finish_test", methods=["POST"])
-def finish_test():
+
+# ---------------- SIGNUP ----------------
+@app.route("/student_signup", methods=["POST"])
+def student_signup():
 
     data = request.json
-    student_id = data["student_id"]
-    test_id = data["test_id"]
+
+    if not data["email"].endswith("@nitap.ac.in"):
+        return jsonify({"status": "invalid_domain"})
 
     conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
 
-    answers = cursor.execute("""
-        SELECT answer FROM responses
-        WHERE student_id=? AND test_id=?
-    """,(student_id,test_id)).fetchall()
-
-    answer_list = [a["answer"] for a in answers]
-
-    score, risk = calculate_risk(answer_list)
-
     cursor.execute("""
-        INSERT INTO results(student_id,test_id,score,risk)
-        VALUES(?,?,?,?)
-    """,(student_id,test_id,score,risk))
+        INSERT INTO students (name,email,password)
+        VALUES (?,?,?)
+    """,(data["name"],data["email"],data["password"]))
+
+    student_id = cursor.lastrowid
 
     conn.commit()
     conn.close()
 
     return jsonify({
-        "status":"saved",
-        "score":score,
-        "risk":risk
+        "status":"success",
+        "id":student_id,
+        "name":data["name"]
     })
+
+@app.route("/student_profile/<int:student_id>")
+def student_profile(student_id):
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+
+        # ---------------- ATTENDANCE ----------------
+        cursor.execute("""
+            SELECT COUNT(*),
+                   SUM(CASE WHEN status='present' THEN 1 ELSE 0 END)
+            FROM attendance_log
+            WHERE student_id=?
+        """, (student_id,))
+        
+        row = cursor.fetchone()
+        total = row[0] if row and row[0] else 0
+        present = row[1] if row and row[1] else 0
+        attendance = (present / total) * 100 if total > 0 else 0
+
+        # ---------------- MARKS ----------------
+        cursor.execute("""
+            SELECT AVG(marks*1.0/max_marks)
+            FROM exam_results
+            WHERE student_id=?
+        """, (student_id,))
+        
+        row = cursor.fetchone()
+        marks = (row[0] if row and row[0] else 0) * 100
+
+        # ---------------- RISK ----------------
+        cursor.execute("""
+            SELECT risk FROM results
+            WHERE student_id=?
+            ORDER BY id DESC LIMIT 1
+        """, (student_id,))
+        
+        row = cursor.fetchone()
+        risk = row[0] if row else "Unknown"
+
+        conn.close()
+
+        # ---------------- AI INSIGHT ----------------
+        try:
+            insight = generate_ai_insight(attendance, marks, risk)
+            print("AI OUTPUT:", insight)
+        except Exception as e:
+            print("AI ERROR:", e)
+            insight = f"Basic insight: Attendance {attendance:.1f}%, Marks {marks:.1f}%, Risk {risk}"
+
+        return jsonify({
+            "attendance": round(attendance, 2),
+            "marks": round(marks, 2),
+            "risk": risk,
+            "ai_insight": insight
+        })
+
+    except Exception as e:
+        print("AI ERROR:", e)
+
+
 
 @app.route("/counselor_login", methods=["POST"])
 def counselor_login():
 
     data = request.json
-    email = data["email"]
-    password = data["password"]
 
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
     cursor.execute(
-        "SELECT id,name FROM counselors WHERE email=? AND password=?",
-        (email,password)
+        "SELECT id FROM counselors WHERE email=? AND password=?",
+        (data["email"], data["password"])
     )
 
     user = cursor.fetchone()
@@ -352,23 +477,11 @@ def counselor_login():
 
     if user:
         return jsonify({
-            "status":"success",
-            "id":user[0],
-            "name":user[1]
+            "status": "success",
+            "id": user[0]
         })
 
-    return jsonify({"status":"fail"})
-
-
-print("Using DB:", os.path.abspath("database/mental_health.db"))
-
-
-import uuid
-
-import uuid
-
-
-
+    return jsonify({"status": "fail"})
 
 if __name__ == "__main__":
     app.run(debug=True)

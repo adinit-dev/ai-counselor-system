@@ -278,6 +278,7 @@ Manage Tests
 <th>Email</th>
 <th>Score</th>
 <th>Risk</th>
+<th>Action</th>
 </tr>
 </thead>
 
@@ -285,18 +286,20 @@ Manage Tests
 
 </table>
 
+<!-- ADD THIS BELOW TABLE -->
+<div id="studentProfile" style="margin-top:25px; background:white; padding:20px; border-radius:12px; box-shadow:0 6px 20px rgba(0,0,0,0.08);">
+<h3>Student Profile</h3>
+<p>Select a student to view AI profile</p>
+</div>
+
 </div>
 
 
 <script>
 
-/* PROTECT PAGE */
-
 if(!localStorage.getItem("counselor_id")){
 window.location.href="../../index.html"
 }
-
-/* LOGOUT */
 
 function logout(){
 localStorage.removeItem("counselor_id")
@@ -317,22 +320,15 @@ data:{
 labels:["Low Risk","Medium Risk","High Risk"],
 datasets:[{
 data:[low,medium,high],
-backgroundColor:[
-"#22c55e",
-"#facc15",
-"#ef4444"
-],
+backgroundColor:["#22c55e","#facc15","#ef4444"],
 borderRadius:6
 }]
 },
 options:{
 plugins:{legend:{display:false}},
-scales:{
-y:{beginAtZero:true,ticks:{stepSize:1}}
-}
+scales:{y:{beginAtZero:true}}
 }
 })
-
 }
 
 async function loadResults(){
@@ -341,12 +337,9 @@ const res=await fetch("http://127.0.0.1:5000/counselor/results")
 const data=await res.json()
 
 const table=document.getElementById("resultsTable")
-
 table.innerHTML=""
 
-let low=0
-let medium=0
-let high=0
+let low=0, medium=0, high=0
 
 data.forEach(student=>{
 
@@ -359,13 +352,18 @@ row.innerHTML=`
 <td>${student.email}</td>
 <td>${student.score}</td>
 <td class="${riskClass}">${student.risk}</td>
+<td>
+<button onclick="openResult(${student.id})">
+View Profile
+</button>
+</td>
 `
 
 table.appendChild(row)
 
-if(student.risk==="Low") low++
-if(student.risk==="Medium") medium++
-if(student.risk==="High") high++
+if(student.risk==="LOW" || student.risk==="Low") low++
+if(student.risk==="MEDIUM" || student.risk==="Medium") medium++
+if(student.risk==="HIGH" || student.risk==="High") high++
 
 })
 
@@ -374,28 +372,46 @@ document.getElementById("mediumCount").innerText=medium
 document.getElementById("highCount").innerText=high
 
 drawChart(low,medium,high)
+}
 
+async function loadProfile(studentId){
+
+const res = await fetch(`http://127.0.0.1:5000/student_profile/${studentId}`)
+const data = await res.json()
+
+document.getElementById("studentProfile").innerHTML=`
+<h3>Student Profile</h3>
+
+<p><b>Attendance:</b> ${data.attendance}%</p>
+<p><b>Marks:</b> ${data.marks}%</p>
+<p><b>Risk:</b> ${data.risk}</p>
+
+<hr>
+
+<p><b>AI Insight:</b></p>
+<p>${data.ai_insight}</p>
+`
 }
 
 function filterStudents(){
-
 const input=document.getElementById("search").value.toLowerCase()
-
 const rows=document.querySelectorAll("#resultsTable tr")
 
 rows.forEach(row=>{
 const text=row.innerText.toLowerCase()
 row.style.display=text.includes(input) ? "" : "none"
 })
-
 }
 
 function goToTests(){
 window.location.href="tests.html"
 }
 
-loadResults()
+function openResult(id){
+window.location.href = "results.html?student_id=" + id
+}
 
+loadResults()
 setInterval(loadResults,10000)
 
 </script>

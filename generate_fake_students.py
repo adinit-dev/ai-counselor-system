@@ -6,10 +6,12 @@ fake = Faker()
 conn = sqlite3.connect("database/mental_health.db")
 cursor = conn.cursor()
 
+cursor.execute("DELETE FROM students")
+
 for i in range(20):
 
     name = fake.name()
-    email = fake.email()
+    email = name.lower().replace(" ", ".") + "@nitap.ac.in"
     password = "1234"
 
     cursor.execute(

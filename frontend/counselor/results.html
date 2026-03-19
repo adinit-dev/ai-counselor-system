@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<title>Student Result</title>
+
+<style>
+
+body{
+margin:0;
+font-family:Segoe UI;
+background:linear-gradient(135deg,#eef2ff,#f8fafc);
+padding:40px;
+}
+
+.container{
+max-width:700px;
+margin:auto;
+background:white;
+padding:30px;
+border-radius:12px;
+box-shadow:0 10px 30px rgba(0,0,0,0.08);
+}
+
+h1{
+margin-bottom:20px;
+color:#1e293b;
+}
+
+.card{
+margin-bottom:15px;
+padding:15px;
+border-radius:10px;
+background:#f8fafc;
+border:1px solid #e2e8f0;
+}
+
+.label{
+font-weight:600;
+color:#334155;
+}
+
+.value{
+margin-top:5px;
+font-size:16px;
+}
+
+.ai-box{
+margin-top:20px;
+padding:20px;
+border-radius:12px;
+background:#eef2ff;
+border-left:5px solid #6366f1;
+}
+
+.back{
+margin-top:20px;
+background:#6366f1;
+color:white;
+border:none;
+padding:10px 18px;
+border-radius:8px;
+cursor:pointer;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>Student Result & AI Analysis</h1>
+
+<div class="card">
+<div class="label">Attendance</div>
+<div class="value" id="attendance"></div>
+</div>
+
+<div class="card">
+<div class="label">Marks</div>
+<div class="value" id="marks"></div>
+</div>
+
+<div class="card">
+<div class="label">Risk Level</div>
+<div class="value" id="risk"></div>
+</div>
+
+<div class="ai-box">
+<b>AI Insight:</b>
+<p id="ai"></p>
+</div>
+
+<button class="back" onclick="goBack()">Back</button>
+
+</div>
+
+<script>
+
+// get student id from URL
+ 
+const params = new URLSearchParams(window.location.search)
+const studentId = params.get("student_id")
+
+// 🔥 DEBUG
+console.log("Student ID:", studentId)
+
+async function loadResult(){
+
+// ❌ STOP IF INVALID
+if(!studentId || studentId === "undefined"){
+    document.getElementById("attendance").innerText = "Invalid student"
+    document.getElementById("marks").innerText = "-"
+    document.getElementById("risk").innerText = "-"
+    document.getElementById("ai").innerText = "No data available"
+    return
+}
+
+try{
+
+const res = await fetch(`http://127.0.0.1:5000/student_profile/${studentId}`)
+
+if(!res.ok){
+    throw new Error("API failed")
+}
+
+const data = await res.json()
+
+document.getElementById("attendance").innerText = data.attendance + "%"
+document.getElementById("marks").innerText = data.marks
+document.getElementById("risk").innerText = data.risk
+document.getElementById("ai").innerText = data.ai_insight
+
+}catch(err){
+
+console.error(err)
+
+document.getElementById("ai").innerText = "Error loading data"
+
+}
+
+}
+
+function goBack(){
+window.history.back()
+}
+
+loadResult()
+
+</script>
+
+</body>
+</html>

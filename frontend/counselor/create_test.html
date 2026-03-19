@@ -251,11 +251,8 @@ input:focus, textarea:focus{
 
 let questionCount = 0;
 
-
 /* ADD QUESTION */
-
 function addQuestion(){
-
     questionCount++;
 
     let container = document.getElementById("questions");
@@ -264,12 +261,10 @@ function addQuestion(){
 
     card.className = "questionCard";
     card.id = "card" + questionCount;
-    card.scrollIntoView({behavior:"smooth"})
 
     card.innerHTML = `
         <div class="questionHeader">
             <h3>Question ${questionCount}</h3>
-
             <button class="deleteBtn"
                     onclick="removeQuestion(${questionCount})">
                 Delete
@@ -285,14 +280,11 @@ function addQuestion(){
             <input placeholder="Option 4">
         </div>
     `;
-   
 
     container.appendChild(card);
 }
 
-
 /* REMOVE QUESTION */
-
 function removeQuestion(id){
 
     let card = document.getElementById("card" + id);
@@ -301,87 +293,104 @@ function removeQuestion(id){
         card.remove();
     }
 
-    updateQuestionNumbers();
+    updateQuestionNumbers();   // ✅ IMPORTANT
 }
-
-
-/* UPDATE QUESTION NUMBERS */
 
 function updateQuestionNumbers(){
 
-    let cards = document.querySelectorAll(".questionCard")
+    let cards = document.querySelectorAll(".questionCard");
 
     cards.forEach((card,index)=>{
 
-        let number = index + 1
+        let number = index + 1;
 
-        card.querySelector("h3").innerText = "Question " + number
+        card.querySelector("h3").innerText = "Question " + number;
 
-        let deleteBtn = card.querySelector(".deleteBtn")
+        let deleteBtn = card.querySelector(".deleteBtn");
 
-        deleteBtn.setAttribute("onclick","removeQuestion("+number+")")
+        deleteBtn.setAttribute("onclick","removeQuestion("+number+")");
 
-        card.id = "card" + number
-    })
+        card.id = "card" + number;
+    });
 
-    questionCount = cards.length
+    questionCount = cards.length;
 }
 
-
 /* PUBLISH TEST */
+let isSubmitting = false;   // ✅ OUTSIDE function
 
 async function publishTest(){
+
+    if(isSubmitting) return;
+    isSubmitting = true;
 
     let testName = document.getElementById("testName").value;
 
     if(testName === ""){
         alert("Enter test name");
+        isSubmitting = false;
         return;
     }
 
-    const res = await fetch("http://127.0.0.1:5000/create_test",{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({name:testName})
-    });
+    try{
 
-    const data = await res.json();
-
-    if(!data.success){
-        alert("Test creation failed");
-        return;
-    }
-
-    let test_id = data.test_id;
-
-    let cards = document.querySelectorAll(".questionCard");
-
-    for(let card of cards){
-
-        let q = card.querySelector("textarea").value;
-        let inputs = card.querySelectorAll("input");
-
-        let option1 = inputs[0].value;
-        let option2 = inputs[1].value;
-        let option3 = inputs[2].value;
-        let option4 = inputs[3].value;
-
-        await fetch("http://127.0.0.1:5000/add_question",{
+        const res = await fetch("http://127.0.0.1:5000/create_test",{
             method:"POST",
             headers:{"Content-Type":"application/json"},
-            body:JSON.stringify({
-                test_id,
-                question:q,
-                option1,
-                option2,
-                option3,
-                option4
-            })
+            body:JSON.stringify({title:testName})
         });
+
+        const data = await res.json();
+
+        if(!data.success){
+            alert("Test creation failed");
+            isSubmitting = false;
+            return;
+        }
+
+        let test_id = data.test_id;
+
+        let cards = document.querySelectorAll(".questionCard");
+
+        if(cards.length === 0){
+            alert("Add at least one question");
+            isSubmitting = false;
+            return;
+        }
+
+        for(let card of cards){
+
+            let q = card.querySelector("textarea").value;
+
+            if(q.trim() === "") continue;
+
+            let inputs = card.querySelectorAll("input");
+
+            await fetch("http://127.0.0.1:5000/add_question",{
+                method:"POST",
+                headers:{"Content-Type":"application/json"},
+                body:JSON.stringify({
+                    test_id,
+                    question_text: q,
+                    option1: inputs[0].value,
+                    option2: inputs[1].value,
+                    option3: inputs[2].value,
+                    option4: inputs[3].value
+                })
+            });
+        }
+
+        alert("Test created successfully ✅");
+        window.location.href = "tests.html";
+
+    }catch(err){
+        console.error(err);
+        alert("Something went wrong");
     }
 
-    window.location.href = "tests.html";
+    isSubmitting = false;
 }
+
 
 </script>
 
