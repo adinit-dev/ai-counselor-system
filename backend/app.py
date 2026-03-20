@@ -12,9 +12,9 @@ CORS(app,
      methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"]
 )
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_PATH = os.path.join(BASE_DIR, "..", "database", "mental_health.db")
-DB_PATH = os.path.abspath(DB_PATH)
+DB_PATH = os.path.abspath(os.path.join(os.getcwd(), "database", "mental_health.db"))
+print("DB PATH:", DB_PATH)
+print("DB EXISTS:", os.path.exists(DB_PATH))
 
 @app.after_request
 def after_request(response):
@@ -60,24 +60,32 @@ def login():
 @app.route("/tests")
 def get_tests():
     try:
+        print("STEP 1: inside /tests")
+
         conn = sqlite3.connect(DB_PATH)
         conn.row_factory = sqlite3.Row
 
+        print("STEP 2: DB connected")
+
         rows = conn.execute("SELECT * FROM tests").fetchall()
+
+        print("STEP 3: query executed")
 
         tests = []
         for row in rows:
             tests.append({
                 "id": row["id"],
-                "title": row["title"]   # ✅ IMPORTANT
+                "title": row["title"]
             })
 
         conn.close()
 
+        print("STEP 4: returning response")
+
         return jsonify(tests)
 
     except Exception as e:
-        print("ERROR IN /tests:", e)   # 👈 will show real error
+        print("ERROR IN /tests:", e)
         return jsonify({"error": str(e)}), 500
 
 
