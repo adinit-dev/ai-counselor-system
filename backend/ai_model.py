@@ -65,9 +65,8 @@ def train_model():
     return model
 
 
-# ---------------- GLOBAL MODEL (SAFE LOAD) ----------------
+# ---------------- GLOBAL MODEL ----------------
 model = None
-
 
 def get_model():
     global model
@@ -81,6 +80,7 @@ def predict_student(student_id):
 
     conn = sqlite3.connect(DB_PATH)
 
+    # ---------------- CURRENT DATA ----------------
     att = pd.read_sql_query(f"""
     SELECT COUNT(*) as total,
     SUM(CASE WHEN status='present' THEN 1 ELSE 0 END) as present
@@ -100,8 +100,24 @@ def predict_student(student_id):
     WHERE student_id = {student_id}
     """, conn)
 
+    # ---------------- TREND DATA ----------------
+    marks_history = pd.read_sql_query(f"""
+    SELECT marks*1.0/max_marks as marks_ratio
+    FROM marks
+    WHERE student_id = {student_id}
+    ORDER BY id DESC LIMIT 3
+    """, conn)
+
+    attendance_history = pd.read_sql_query(f"""
+    SELECT CASE WHEN status='present' THEN 1 ELSE 0 END as present
+    FROM attendance
+    WHERE student_id = {student_id}
+    ORDER BY id DESC LIMIT 5
+    """, conn)
+
     conn.close()
 
+    # ---------------- CALCULATIONS ----------------
     total = att["total"][0] if att["total"][0] else 0
     present = att["present"][0] if att["present"][0] else 0
 
@@ -109,6 +125,23 @@ def predict_student(student_id):
     marks_ratio = marks["marks_ratio"][0] if marks["marks_ratio"][0] else 0
     mental_score = mental["mental_score"][0] if mental["mental_score"][0] else 5
 
+    # ---------------- TREND DETECTION ----------------
+    marks_trend = "stable"
+
+    if len(marks_history) >= 2:
+        if marks_history["marks_ratio"].iloc[0] < marks_history["marks_ratio"].iloc[-1] - 0.2:
+            marks_trend = "declining"
+        elif marks_history["marks_ratio"].iloc[0] > marks_history["marks_ratio"].iloc[-1] + 0.2:
+            marks_trend = "improving"
+
+    attendance_trend = "stable"
+
+    if len(attendance_history) >= 3:
+        avg_recent = attendance_history["present"].mean()
+        if avg_recent < 0.5:
+            attendance_trend = "low"
+
+    # ---------------- ML PREDICTION ----------------
     sample = pd.DataFrame(
         [[attendance_rate, marks_ratio, mental_score]],
         columns=["attendance_rate", "marks_ratio", "mental_score"]
@@ -117,10 +150,17 @@ def predict_student(student_id):
     model = get_model()
     prediction = model.predict(sample)[0]
 
-    return prediction, attendance_rate, marks_ratio, mental_score
+    # ---------------- TREND ADJUSTMENT ----------------
+    if marks_trend == "declining" or attendance_trend == "low":
+        if prediction == "LOW":
+            prediction = "MEDIUM"
+        elif prediction == "MEDIUM":
+            prediction = "HIGH"
+
+    return prediction, attendance_rate, marks_ratio, mental_score, marks_trend
 
 
-# ---------------- RULE-BASED AI ----------------
+# ---------------- AI INSIGHT ----------------
 def generate_ai_insight(attendance, marks, risk, mental_score=None):
 
     insight = ""

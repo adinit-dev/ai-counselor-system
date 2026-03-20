@@ -330,7 +330,7 @@ def counselor_results():
         """, (student_id,))
         
         row = cursor.fetchone()
-        risk = row[0] if row else "LOW"
+        #risk = row[0] if row else "LOW"
 
         # ---------------- SCORE (🔥 REAL FIX) ----------------
         score = (
@@ -339,13 +339,31 @@ def counselor_results():
             ((10 - mental_score) * 10 * 0.2)
         )
 
+        if score >= 70:
+            risk = "LOW"
+        elif score >= 50:
+            risk = "MEDIUM"
+        else:
+            risk = "HIGH"
+
+                   
+
+        # ---------------- TREND LOGIC ----------------
+        trend = "stable"
+
+        if marks < 50 or attendance < 50:
+            trend = "declining"
+        elif marks > 75 and attendance > 75:
+            trend = "improving"
+
         results.append({
             "id": student_id,
             "name": s["name"],
             "email": s["email"],
             "score": round(score, 2),
-            "risk": risk
-        })
+            "risk": risk,
+            "trend": trend
+        })     
 
     conn.close()
 
@@ -464,6 +482,28 @@ def student_profile(student_id):
 
     except Exception as e:
         print("AI ERROR:", e)
+
+
+@app.route("/delete_test/<int:test_id>", methods=["DELETE"])
+def delete_test(test_id):
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+
+        # delete related questions first
+        cursor.execute("DELETE FROM questions WHERE test_id=?", (test_id,))
+
+        # delete test
+        cursor.execute("DELETE FROM tests WHERE id=?", (test_id,))
+
+        conn.commit()
+        conn.close()
+
+        return jsonify({"success": True})
+
+    except Exception as e:
+        print("DELETE ERROR:", e)
+        return jsonify({"success": False}), 500
 
 
 

@@ -207,6 +207,25 @@ background:#4f46e5;
 transform:translateY(-1px);
 box-shadow:0 6px 14px rgba(99,102,241,0.25);
 }
+
+.view-btn {
+    background: linear-gradient(135deg, #5f6af2, #7b61ff);
+    color: white;
+    border: none;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    font-weight: 500;
+}
+
+.view-btn:hover {
+    transform: translateY(-2px) scale(1.03);
+    box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+}
+
+
 </style>
 
 </head>
@@ -279,6 +298,7 @@ Manage Tests
 <th>Score</th>
 <th>Risk</th>
 <th>Action</th>
+<th>Trend</th>
 </tr>
 </thead>
 
@@ -287,10 +307,7 @@ Manage Tests
 </table>
 
 <!-- ADD THIS BELOW TABLE -->
-<div id="studentProfile" style="margin-top:25px; background:white; padding:20px; border-radius:12px; box-shadow:0 6px 20px rgba(0,0,0,0.08);">
-<h3>Student Profile</h3>
-<p>Select a student to view AI profile</p>
-</div>
+
 
 </div>
 <script src="../js/script.js"></script>
@@ -347,16 +364,24 @@ let riskClass=student.risk.toLowerCase()
 
 let row=document.createElement("tr")
 
-row.innerHTML=`
+let trendIcon = "➖"
+
+if(student.trend === "declining") {
+    trendIcon = "<span style='color:red'>📉</span>"
+}
+else if(student.trend === "improving") {
+    trendIcon = "<span style='color:green'>📈</span>"
+}
+
+row.innerHTML = `
 <td>${student.name}</td>
 <td>${student.email}</td>
 <td>${student.score}</td>
 <td class="${riskClass}">${student.risk}</td>
 <td>
-<button onclick="openResult(${student.id})">
-View Profile
-</button>
+<button class="view-btn" onclick="viewProfile(${student.id})">View Profile</button>
 </td>
+<td>${trendIcon}</td>
 `
 
 table.appendChild(row)
