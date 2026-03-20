@@ -379,7 +379,9 @@ row.innerHTML = `
 <td>${student.score}</td>
 <td class="${riskClass}">${student.risk}</td>
 <td>
-<button class="view-btn" onclick="viewProfile(${student.id})">View Profile</button>
+<button class="view-btn" onclick="openResult(${student.id})">
+    View Profile
+</button>
 </td>
 <td>${trendIcon}</td>
 `
