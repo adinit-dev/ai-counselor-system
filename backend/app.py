@@ -465,7 +465,7 @@ def student_profile(student_id):
             risk = prediction
         except Exception as e:
             print("AI MODEL ERROR:", e)
-            risk = "Low"
+            risk = "LOW"
             mental = "stable"
 
         # ✅ SAFE AI INSIGHT

@@ -84,7 +84,7 @@ def predict_student(student_id):
     att = pd.read_sql_query(f"""
     SELECT COUNT(*) as total,
     SUM(CASE WHEN status='present' THEN 1 ELSE 0 END) as present
-    FROM attendance
+    FROM attendance_log
     WHERE student_id = {student_id}
     """, conn)
 
@@ -108,23 +108,19 @@ def predict_student(student_id):
     ORDER BY id DESC LIMIT 3
     """, conn)
 
-    attendance_history = pd.read_sql_query(f"""
-    SELECT CASE WHEN status='present' THEN 1 ELSE 0 END as present
-    FROM attendance
-    WHERE student_id = {student_id}
-    ORDER BY id DESC LIMIT 5
-    """, conn)
 
-    conn.close()
-
-    # ---------------- CALCULATIONS ----------------
-    # ---------------- SAFE + PATTERN ATTENDANCE ----------------
     attendance_history = pd.read_sql_query(f"""
     SELECT CASE WHEN status='present' THEN 1 ELSE 0 END as present
     FROM attendance_log
     WHERE student_id = {student_id}
     ORDER BY id DESC LIMIT 10
     """, conn)
+
+    conn.close()
+
+    # ---------------- CALCULATIONS ----------------
+    # ---------------- SAFE + PATTERN ATTENDANCE ----------------
+    
 
     if not attendance_history.empty:
         attendance_rate = attendance_history["present"].mean()
@@ -133,7 +129,7 @@ def predict_student(student_id):
 
 
     marks_ratio = marks["marks_ratio"].iloc[0] if not marks.empty and marks["marks_ratio"].iloc[0] else 0
-    mental_score = mental["mental_score"].iloc[0] if not mental.empty and mental["mental_score"].iloc[0] else 5
+    mental_score = float(mental["mental_score"].iloc[0]) if not mental.empty and mental["mental_score"].iloc[0] else 5.0
 
     # ---------------- TREND DETECTION ----------------
     attendance_trend = "stable"
@@ -148,10 +144,10 @@ def predict_student(student_id):
             attendance_trend = "improving"
 
         # ---------------- ML PREDICTION ----------------
-        sample = pd.DataFrame(
-            [[attendance_rate, marks_ratio, mental_score]],
-            columns=["attendance_rate", "marks_ratio", "mental_score"]
-        )
+    sample = pd.DataFrame(
+        [[attendance_rate, marks_ratio, mental_score]],
+        columns=["attendance_rate", "marks_ratio", "mental_score"]
+    )
 
     model = get_model()
     prediction = model.predict(sample)[0]
