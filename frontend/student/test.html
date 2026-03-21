@@ -183,7 +183,7 @@ html += `
 Question ${index + 1}
 </div>
 
-<h3>${q.question_text}</h3>
+<h3>${q.question}</h3>
 
 <label><input type="radio" name="${q.id}" value="${q.option1}"> ${q.option1}</label>
 <label><input type="radio" name="${q.id}" value="${q.option2}"> ${q.option2}</label>
@@ -211,7 +211,13 @@ window.location.href="../../index.html"
 return
 }
 
+const btn = document.querySelector(".submitBtn")
+btn.innerText = "Submitting..."
+btn.disabled = true
+
 const questions = document.querySelectorAll(".test-card")
+
+const requests = []
 
 for(let q of questions){
 
@@ -219,10 +225,32 @@ const checked = q.querySelector("input[type=radio]:checked")
 
 if(!checked){
 alert("Please answer all questions before submitting.")
+btn.innerText = "Submit Test"
+btn.disabled = false
 return
 }
 
+const questionId = checked.name
+const answer = checked.value
+
+requests.push(
+fetch(`${BASE_URL}/submit_response`, {
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+student_id: studentId,
+test_id: testId,
+question_id: questionId,
+answer: answer
+})
+})
+)
+
 }
+
+await Promise.all(requests)
 
 await fetch(`${BASE_URL}/finish_test`, {
 method:"POST",
@@ -230,8 +258,8 @@ headers:{
 "Content-Type":"application/json"
 },
 body:JSON.stringify({
-student_id:studentId,
-test_id:testId
+student_id: studentId,
+test_id: testId
 })
 })
 

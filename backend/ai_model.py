@@ -163,73 +163,148 @@ def predict_student(student_id):
 # ---------------- AI INSIGHT ----------------
 def generate_ai_insight(attendance, marks, risk, mental_score=None):
 
-    insight = ""
+    import random
 
-    # ---------------- CURRENT STATE ----------------
-    insight += f"Student shows {risk.lower()} risk. "
+    insight_parts = []
 
+    # ---------------- RISK INTRO (VARIATION) ----------------
+    risk_msgs = {
+        "HIGH": [
+            "Student is currently in a high-risk state and needs immediate attention.",
+            "This student falls under high risk and requires urgent support.",
+            "Warning: Student is at high risk and intervention is recommended."
+        ],
+        "MEDIUM": [
+            "Student is at moderate risk and should be monitored closely.",
+            "There are signs of moderate risk; guidance is needed.",
+            "Student shows medium risk and requires attention."
+        ],
+        "LOW": [
+            "Student is currently stable with low risk.",
+            "No major concerns detected; student is in a safe range.",
+            "Student appears to be in a low-risk condition."
+        ]
+    }
+
+    insight_parts.append(random.choice(risk_msgs.get(risk, ["Risk level could not be determined."])))
+
+    # ---------------- ATTENDANCE ----------------
     if attendance < 50:
-        insight += "Attendance is significantly low, indicating disengagement. "
+        insight_parts.append(random.choice([
+            f"Attendance is critically low at {attendance:.1f}%, indicating disengagement.",
+            f"With attendance at just {attendance:.1f}%, the student is highly inconsistent.",
+            f"Low attendance ({attendance:.1f}%) suggests lack of participation."
+        ]))
     elif attendance < 75:
-        insight += "Attendance is moderate, showing partial consistency. "
+        insight_parts.append(random.choice([
+            f"Attendance is moderate at {attendance:.1f}%, showing partial consistency.",
+            f"Attendance ({attendance:.1f}%) is acceptable but needs improvement.",
+            f"Student attends moderately ({attendance:.1f}%), but consistency can improve."
+        ]))
     else:
-        insight += "Attendance is strong, indicating discipline. "
+        insight_parts.append(random.choice([
+            f"Attendance is strong at {attendance:.1f}%, indicating discipline.",
+            f"High attendance ({attendance:.1f}%) reflects good consistency.",
+            f"Student maintains solid attendance ({attendance:.1f}%)."
+        ]))
 
+    # ---------------- MARKS ----------------
     if marks < 50:
-        insight += "Academic performance is weak. "
+        insight_parts.append(random.choice([
+            f"Academic performance is weak at {marks:.1f}%.",
+            f"Marks are low ({marks:.1f}%), indicating learning gaps.",
+            f"Student is struggling academically with {marks:.1f}%."
+        ]))
     elif marks < 75:
-        insight += "Performance is average. "
+        insight_parts.append(random.choice([
+            f"Performance is average at {marks:.1f}%.",
+            f"Marks ({marks:.1f}%) indicate moderate understanding.",
+            f"Student shows average academic performance ({marks:.1f}%)."
+        ]))
     else:
-        insight += "Performance is good. "
+        insight_parts.append(random.choice([
+            f"Performance is strong at {marks:.1f}%.",
+            f"Marks ({marks:.1f}%) reflect good understanding.",
+            f"Student is performing well academically ({marks:.1f}%)."
+        ]))
 
     # ---------------- PATTERN ANALYSIS ----------------
-    insight += "Pattern analysis suggests: "
-
-    if attendance > 75 and marks < 50:
-        insight += "student attends classes but struggles to understand concepts. "
-
+    if attendance < 50 and marks < 50:
+        insight_parts.append(random.choice([
+            "Student is both disengaged and academically struggling.",
+            "Low participation and weak performance indicate serious concern.",
+        ]))
+    elif attendance > 75 and marks < 50:
+        insight_parts.append(random.choice([
+            "Student attends regularly but struggles with understanding concepts.",
+            "Despite good attendance, academic performance is lacking.",
+        ]))
     elif attendance < 50 and marks > 70:
-        insight += "student has capability but lacks consistency. "
-
-    elif attendance < 50 and marks < 50:
-        insight += "student is both disengaged and academically struggling. "
-
+        insight_parts.append(random.choice([
+            "Student has capability but lacks consistency in attendance.",
+            "Performance is good, but attendance issues are limiting potential.",
+        ]))
     elif attendance > 75 and marks > 75:
-        insight += "student is consistent and performing well. "
-
+        insight_parts.append(random.choice([
+            "Student is consistent and performing very well.",
+            "Strong attendance and performance indicate excellent stability.",
+        ]))
     else:
-        insight += "mixed performance with scope for improvement. "
+        insight_parts.append(random.choice([
+            "Student shows mixed performance and needs monitoring.",
+            "There is inconsistency in performance that requires attention.",
+        ]))
 
-    # ---------------- MENTAL BEHAVIOR ----------------
+    # ---------------- MENTAL STATE ----------------
     if mental_score is not None:
-
-        insight += "Mental assessment indicates: "
-
         if mental_score >= 8:
-            insight += "high stress or anxiety levels. "
+            insight_parts.append(random.choice([
+                "Mental assessment suggests high stress levels.",
+                "Student appears to be under significant emotional pressure.",
+            ]))
         elif mental_score >= 5:
-            insight += "moderate emotional pressure. "
+            insight_parts.append(random.choice([
+                "Moderate emotional pressure is observed.",
+                "Student shows signs of manageable stress.",
+            ]))
         else:
-            insight += "stable mental condition. "
+            insight_parts.append(random.choice([
+                "Mental condition appears stable.",
+                "No major emotional concerns detected.",
+            ]))
 
     # ---------------- FUTURE PREDICTION ----------------
-    insight += "If this pattern continues, "
-
     if risk == "HIGH":
-        insight += "the student may face burnout or academic decline. "
+        insight_parts.append(random.choice([
+            "Without intervention, performance may decline further.",
+            "Immediate support is required to prevent deterioration.",
+        ]))
     elif risk == "MEDIUM":
-        insight += "performance may fluctuate and risk may increase. "
+        insight_parts.append(random.choice([
+            "Performance may fluctuate if not supported.",
+            "Guidance can help stabilize performance.",
+        ]))
     else:
-        insight += "student is likely to remain stable. "
+        insight_parts.append(random.choice([
+            "Student is likely to remain stable if current trends continue.",
+            "Consistent effort can further improve performance.",
+        ]))
 
-    # ---------------- ACTIONABLE ADVICE ----------------
-    insight += "Recommended action: "
-
+    # ---------------- RECOMMENDATION ----------------
     if risk == "HIGH":
-        insight += "immediate counseling, reduced academic pressure, and close monitoring."
+        insight_parts.append(random.choice([
+            "Recommended: Immediate counseling and close monitoring.",
+            "Action: Reduce pressure and provide structured support.",
+        ]))
     elif risk == "MEDIUM":
-        insight += "regular mentoring, better study planning, and emotional support."
+        insight_parts.append(random.choice([
+            "Recommended: Regular mentoring and better study planning.",
+            "Action: Provide guidance and emotional support.",
+        ]))
     else:
-        insight += "maintain current routine and encourage growth."
+        insight_parts.append(random.choice([
+            "Recommended: Maintain current routine and encourage growth.",
+            "Action: Continue consistent efforts and build on strengths.",
+        ]))
 
-    return insight
+    return " ".join(insight_parts)

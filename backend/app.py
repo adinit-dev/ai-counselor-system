@@ -3,7 +3,9 @@ from flask_cors import CORS
 import sqlite3
 import os
 import uuid
-from backend.ai_model import generate_ai_insight
+
+# import at top
+from ai_model import predict_student, generate_ai_insight
 
 app = Flask(__name__)
 CORS(app,
@@ -424,13 +426,15 @@ def student_signup():
         "name":data["name"]
     })
 
+
+
 @app.route("/student_profile/<int:student_id>")
 def student_profile(student_id):
     try:
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
 
-        # ---------------- ATTENDANCE ----------------
+        # ATTENDANCE
         cursor.execute("""
             SELECT COUNT(*),
                    SUM(CASE WHEN status='present' THEN 1 ELSE 0 END)
@@ -443,7 +447,7 @@ def student_profile(student_id):
         present = row[1] if row and row[1] else 0
         attendance = (present / total) * 100 if total > 0 else 0
 
-        # ---------------- MARKS ----------------
+        # MARKS
         cursor.execute("""
             SELECT AVG(marks*1.0/max_marks)
             FROM exam_results
@@ -453,25 +457,14 @@ def student_profile(student_id):
         row = cursor.fetchone()
         marks = (row[0] if row and row[0] else 0) * 100
 
-        # ---------------- RISK ----------------
-        cursor.execute("""
-            SELECT risk FROM results
-            WHERE student_id=?
-            ORDER BY id DESC LIMIT 1
-        """, (student_id,))
-        
-        row = cursor.fetchone()
-        risk = row[0] if row else "Unknown"
-
         conn.close()
 
-        # ---------------- AI INSIGHT ----------------
-        try:
-            insight = generate_ai_insight(attendance, marks, risk)
-            print("AI OUTPUT:", insight)
-        except Exception as e:
-            print("AI ERROR:", e)
-            insight = f"Basic insight: Attendance {attendance:.1f}%, Marks {marks:.1f}%, Risk {risk}"
+        # AI MODEL
+        prediction, att_rate, marks_ratio, mental, trend = predict_student(student_id)
+        risk = prediction
+
+        # AI INSIGHT
+        insight = generate_ai_insight(attendance, marks, risk, mental)
 
         return jsonify({
             "attendance": round(attendance, 2),
@@ -481,8 +474,7 @@ def student_profile(student_id):
         })
 
     except Exception as e:
-        print("AI ERROR:", e)
-
+        print("ERROR:", e)
 
 @app.route("/delete_test/<int:test_id>", methods=["DELETE"])
 def delete_test(test_id):
