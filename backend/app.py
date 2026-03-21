@@ -5,7 +5,7 @@ import os
 import uuid
 
 # fixed import for render
-from ai_model import predict_student, generate_ai_insight
+from .ai_model import predict_student, generate_ai_insight
 
 app = Flask(__name__)
 CORS(app,
