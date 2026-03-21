@@ -4,7 +4,7 @@ import sqlite3
 import os
 import uuid
 
-# import at top
+# fixed import for render
 from ai_model import predict_student, generate_ai_insight
 
 app = Flask(__name__)
