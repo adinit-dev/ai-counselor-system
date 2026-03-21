@@ -89,7 +89,7 @@ def predict_student(student_id):
     """, conn)
 
     marks = pd.read_sql_query(f"""
-    SELECT AVG(marks*1.0/max_marks) as marks_ratio
+    SELECT AVG(total*1.0/100) as marks_ratio
     FROM marks
     WHERE student_id = {student_id}
     """, conn)
@@ -151,6 +151,8 @@ def predict_student(student_id):
 
     model = get_model()
     prediction = model.predict(sample)[0]
+    prediction = str(prediction).upper()
+    
     marks_trend = "stable"
     # ---------------- TREND ADJUSTMENT ----------------
     if marks_trend == "declining" or attendance_trend == "declining":
@@ -164,6 +166,8 @@ def predict_student(student_id):
 
 # ---------------- AI INSIGHT ----------------
 def generate_ai_insight(attendance, marks, risk, mental_score=None):
+    risk = str(risk).upper()
+
     if isinstance(mental_score, str):
         mental_score = 5.0
 
