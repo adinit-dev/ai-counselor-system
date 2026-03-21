@@ -164,8 +164,11 @@ def predict_student(student_id):
 
 # ---------------- AI INSIGHT ----------------
 def generate_ai_insight(attendance, marks, risk, mental_score=None):
+    if isinstance(mental_score, str):
+        mental_score = 5.0
 
     import random
+    
 
     insight_parts = []
 
