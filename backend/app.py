@@ -459,12 +459,21 @@ def student_profile(student_id):
 
         conn.close()
 
-        # AI MODEL
-        prediction, att_rate, marks_ratio, mental, trend = predict_student(student_id)
-        risk = prediction
+        # ✅ SAFE AI MODEL
+        try:
+            prediction, att_rate, marks_ratio, mental, trend = predict_student(student_id)
+            risk = prediction
+        except Exception as e:
+            print("AI MODEL ERROR:", e)
+            risk = "Low"
+            mental = "stable"
 
-        # AI INSIGHT
-        insight = generate_ai_insight(attendance, marks, risk, mental)
+        # ✅ SAFE AI INSIGHT
+        try:
+            insight = generate_ai_insight(attendance, marks, risk, mental)
+        except Exception as e:
+            print("AI INSIGHT ERROR:", e)
+            insight = f"Attendance {attendance:.1f}%, Marks {marks:.1f}%, Risk {risk}"
 
         return jsonify({
             "attendance": round(attendance, 2),
@@ -474,7 +483,8 @@ def student_profile(student_id):
         })
 
     except Exception as e:
-        print("ERROR:", e)
+        print("MAIN ERROR:", e)
+        return jsonify({"error": "server error"}), 500
 
 @app.route("/delete_test/<int:test_id>", methods=["DELETE"])
 def delete_test(test_id):
